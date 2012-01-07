@@ -14,7 +14,7 @@ SKIP: {
 	my $dme = WWW::DNSMadeEasy->new({
 		api_key => $ENV{WWW_DNSMADEEASY_TEST_APIKEY},
 		secret => $ENV{WWW_DNSMADEEASY_TEST_SECRET},
-		#sandbox => 1,
+		sandbox => 1,
 	});
 
 	isa_ok($dme,'WWW::DNSMadeEasy');
