@@ -98,6 +98,7 @@ sub create_domain {
 	my $params = { dme => $self };
 	if (ref $domain_name eq 'HASH') {
 	    $params->{obj} = $domain_name;
+	    $params->{name} = $domain_name->{name}; # name is required
 	} else {
 	    $params->{name} = $domain_name;
 	}
