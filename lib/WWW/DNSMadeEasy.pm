@@ -10,6 +10,7 @@ use HTTP::Request;
 use JSON;
 
 use WWW::DNSMadeEasy::Domain;
+use WWW::DNSMadeEasy::Response;
 
 our $VERSION ||= '0.0development';
 
@@ -77,11 +78,7 @@ sub request {
 		$request->content(encode_json($data));
 	}
 	my $res = $self->_http_agent->request($request);
-	if ($res->is_success) {
-		return decode_json($res->content);
-	} else {
-		die __PACKAGE__.' HTTP request failed: '.$res->status_line, "\n";
-	}
+	return WWW::DNSMadeEasy::Response->new(response => $res);
 }
 
 #
@@ -108,7 +105,9 @@ sub domain {
 
 sub all_domains {
 	my ( $self ) = @_;
-	my $data = $self->request('GET',$self->path_domains);
+	my $res = $self->request('GET',$self->path_domains);
+	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
+	my $data = $res->as_hashref;
 	return if !$data->{list};
 	my @domains;
 	for (@{$data->{list}}) {
@@ -133,7 +132,7 @@ sub all_domains {
     api_key => '1c1a3c91-4770-4ce7-96f4-54c0eb0e457a',
     secret => 'c9b5625f-9834-4ff8-baba-4ed5f32cae55',
   });
-  
+
   my $sandbox = WWW::DNSMadeEasy->new({
     api_key => '1c1a3c91-4770-4ce7-96f4-54c0eb0e457a',
     secret => 'c9b5625f-9834-4ff8-baba-4ed5f32cae55',
@@ -143,11 +142,11 @@ sub all_domains {
   my @domains = $dme->all_domains;
 
   my $domain = $dme->create_domain('universe.org');
-  
+
   my $other_domain = $dme->domain('existingdomain.com');
-  
+
   my @records = $other_domain->all_records;
-  
+
   my $record = $domain->create_record({
     ttl => 120,
     gtdLocation => 'DEFAULT',
@@ -157,7 +156,7 @@ sub all_domains {
   });
 
   $record->delete;
-  
+
   $domain->delete;
 
 =head1 DESCRIPTION
@@ -226,7 +225,7 @@ Repository
 
   http://github.com/Getty/p5-www-dnsmadeeasy
   Pull request and additional contributors are welcome
- 
+
 Issue Tracker
 
   http://github.com/Getty/p5-www-dnsmadeeasy/issues

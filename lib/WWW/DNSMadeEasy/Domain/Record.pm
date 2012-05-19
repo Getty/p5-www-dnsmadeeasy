@@ -24,7 +24,9 @@ has obj => (
 
 sub _build_obj {
 	my ( $self ) = @_;
-	return $self->domain->dme->request('GET',$self->path);
+	my $res = $self->domain->dme->request('GET',$self->path);
+	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
+	return $res->as_hashref;
 }
 
 sub ttl { shift->obj->{ttl} }
@@ -46,7 +48,9 @@ sub path {
 
 sub delete {
 	my ( $self ) = @_;
-	$self->dme->request('DELETE',$self->path);
+	my $res = $self->dme->request('DELETE',$self->path);
+	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
+	return $res->as_hashref;
 }
 
 1;
@@ -97,7 +101,7 @@ Repository
 
   http://github.com/Getty/p5-www-dnsmadeeasy
   Pull request and additional contributors are welcome
- 
+
 Issue Tracker
 
   http://github.com/Getty/p5-www-dnsmadeeasy/issues
