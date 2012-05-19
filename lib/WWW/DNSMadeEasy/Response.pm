@@ -8,7 +8,7 @@ use JSON;
 has response => (
     is       => 'ro',
     required => 1,
-    handle   => ['is_success', 'content', 'decoded_content', 'status_line', 'code', 'header', 'as_string'],
+    handles   => ['is_success', 'content', 'decoded_content', 'status_line', 'code', 'header', 'as_string'],
 );
 
 sub as_hashref {

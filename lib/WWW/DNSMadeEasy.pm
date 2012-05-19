@@ -46,7 +46,7 @@ has http_agent_name => (
 	default => sub { __PACKAGE__.'/'.$VERSION },
 );
 
-has response => ( is => 'rw', isa => 'WWW::DNSMadeEasy::Response' );
+has response => ( is => 'rw' );
 
 sub api_endpoint {
 	my ( $self ) = @_;
