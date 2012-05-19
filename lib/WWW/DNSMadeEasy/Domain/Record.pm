@@ -46,7 +46,7 @@ sub path {
 
 sub delete {
 	my ( $self ) = @_;
-	$self->dme->request('DELETE',$self->path);
+	$self->domain->dme->request('DELETE',$self->path);
 }
 
 1;
