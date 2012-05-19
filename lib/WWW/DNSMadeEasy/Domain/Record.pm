@@ -24,9 +24,7 @@ has obj => (
 
 sub _build_obj {
 	my ( $self ) = @_;
-	my $res = $self->domain->dme->request('GET',$self->path);
-	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
-	return $res->as_hashref;
+	$self->domain->dme->request('GET',$self->path);
 }
 
 sub ttl { shift->obj->{ttl} }
@@ -48,9 +46,7 @@ sub path {
 
 sub delete {
 	my ( $self ) = @_;
-	my $res = $self->dme->request('DELETE',$self->path);
-	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
-	return $res->as_hashref;
+	$self->dme->request('DELETE',$self->path);
 }
 
 1;

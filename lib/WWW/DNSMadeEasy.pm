@@ -46,6 +46,8 @@ has http_agent_name => (
 	default => sub { __PACKAGE__.'/'.$VERSION },
 );
 
+has response => ( is => 'rw', isa => 'WWW::DNSMadeEasy::Response' );
+
 sub api_endpoint {
 	my ( $self ) = @_;
 	if ($self->sandbox) {
@@ -78,7 +80,10 @@ sub request {
 		$request->content(encode_json($data));
 	}
 	my $res = $self->_http_agent->request($request);
-	return WWW::DNSMadeEasy::Response->new(response => $res);
+	$res = WWW::DNSMadeEasy::Response->new(response => $res);
+	$self->response($res); # so it's accessible
+	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
+	return $res->as_hashref;
 }
 
 #
@@ -105,9 +110,7 @@ sub domain {
 
 sub all_domains {
 	my ( $self ) = @_;
-	my $res = $self->request('GET',$self->path_domains);
-	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
-	my $data = $res->as_hashref;
+	my $data = $self->request('GET',$self->path_domains);
 	return if !$data->{list};
 	my @domains;
 	for (@{$data->{list}}) {

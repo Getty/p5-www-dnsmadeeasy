@@ -30,16 +30,12 @@ sub path {
 
 sub delete {
 	my ( $self ) = @_;
-	my $res = $self->dme->request('DELETE',$self->path);
-	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
-	return $res->as_hashref;
+	$self->dme->request('DELETE',$self->path);
 }
 
 sub put {
 	my ( $self ) = @_;
-	my $res = $self->dme->request('PUT',$self->path);
-	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
-	return $res->as_hashref;
+	$self->dme->request('PUT',$self->path);
 }
 
 sub path_records { shift->path.'/records' }
@@ -57,17 +53,13 @@ has obj => (
 
 sub _build_obj {
 	my ( $self ) = @_;
-	my $res = $self->dme->request('GET',$self->path);
-	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
-	return $res->as_hashref;
+	$self->dme->request('GET',$self->path);
 }
 
 sub create_record {
 	my ( $self, $obj ) = @_;
 
-	my $res = $self->dme->request('POST',$self->path_records,$obj);
-	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
-	my $post_result = $res->as_hashref;
+	my $post_result = $self->dme->request('POST',$self->path_records,$obj);
 
 	return WWW::DNSMadeEasy::Domain::Record->new({
 		domain => $self,
@@ -78,17 +70,13 @@ sub create_record {
 
 sub post {
 	my ( $self ) = @_;
-	my $res = $self->dme->request('POST',$self->path);
-	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
-	return $res->as_hashref;
+	$self->dme->request('POST',$self->path);
 }
 
 sub all_records {
 	my ( $self ) = @_;
 
-	my $res = $self->dme->request('GET',$self->path_records);
-	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
-	my $data = $res->as_hashref;
+	my $data = $self->dme->request('GET',$self->path_records);
 
 	my @records;
 	for (@{$data}) {
