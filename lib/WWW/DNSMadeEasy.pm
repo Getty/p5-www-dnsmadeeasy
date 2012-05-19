@@ -94,10 +94,15 @@ sub path_domains { 'domains' }
 
 sub create_domain {
 	my ( $self, $domain_name ) = @_;
-	return WWW::DNSMadeEasy::Domain->create({
-		name => $domain_name,
-		dme => $self,
-	});
+
+	my $params = { dme => $self };
+	if (ref $domain_name eq 'HASH') {
+	    $params->{obj} = $domain_name;
+	} else {
+	    $params->{name} = $domain_name;
+	}
+
+	return WWW::DNSMadeEasy::Domain->create($params);
 }
 
 sub domain {
