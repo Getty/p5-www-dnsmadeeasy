@@ -13,6 +13,7 @@ has response => (
 
 sub as_hashref {
     my ($self) = @_;
+    return unless $self->response->content; # DELETE return 200 but empty content
     return decode_json($self->response->content);
 }
 
