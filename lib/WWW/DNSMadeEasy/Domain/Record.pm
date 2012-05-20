@@ -24,7 +24,7 @@ has obj => (
 
 sub _build_obj {
 	my ( $self ) = @_;
-	return $self->domain->dme->request('GET',$self->path);
+	$self->domain->dme->request('GET',$self->path);
 }
 
 sub ttl { shift->obj->{ttl} }
@@ -46,7 +46,16 @@ sub path {
 
 sub delete {
 	my ( $self ) = @_;
-	$self->dme->request('DELETE',$self->path);
+	$self->domain->dme->request('DELETE',$self->path);
+}
+
+sub put {
+    my $self = shift;
+    my %data = ( @_ % 2 == 1 ) ? %{ $_[0] } : @_;
+    foreach my $k (keys %data) {
+        $self->obj->{$k} = $data{$k};
+    }
+    $self->domain->dme->request('PUT', $self->path, $self->obj);
 }
 
 1;
@@ -87,6 +96,18 @@ sub delete {
 
 =method $obj->hard_link
 
+=method $obj->put
+
+    $record->put( {
+        name => $name,
+        type => $type,
+        data => $data,
+        gtdLocation => $gtdLocation,
+        ttl => $ttl
+    } );
+
+to update the record
+
 =head1 SUPPORT
 
 IRC
@@ -97,7 +118,7 @@ Repository
 
   http://github.com/Getty/p5-www-dnsmadeeasy
   Pull request and additional contributors are welcome
- 
+
 Issue Tracker
 
   http://github.com/Getty/p5-www-dnsmadeeasy/issues

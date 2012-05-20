@@ -53,12 +53,14 @@ has obj => (
 
 sub _build_obj {
 	my ( $self ) = @_;
-	return $self->dme->request('GET',$self->path);
+	$self->dme->request('GET',$self->path);
 }
 
 sub create_record {
 	my ( $self, $obj ) = @_;
+
 	my $post_result = $self->dme->request('POST',$self->path_records,$obj);
+
 	return WWW::DNSMadeEasy::Domain::Record->new({
 		domain => $self,
 		id => $_->{id},
@@ -73,7 +75,9 @@ sub post {
 
 sub all_records {
 	my ( $self ) = @_;
+
 	my $data = $self->dme->request('GET',$self->path_records);
+
 	my @records;
 	for (@{$data}) {
 		push @records, WWW::DNSMadeEasy::Domain::Record->new({
@@ -131,7 +135,7 @@ Repository
 
   http://github.com/Getty/p5-www-dnsmadeeasy
   Pull request and additional contributors are welcome
- 
+
 Issue Tracker
 
   http://github.com/Getty/p5-www-dnsmadeeasy/issues

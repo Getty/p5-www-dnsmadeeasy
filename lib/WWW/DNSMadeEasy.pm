@@ -10,6 +10,7 @@ use HTTP::Request;
 use JSON;
 
 use WWW::DNSMadeEasy::Domain;
+use WWW::DNSMadeEasy::Response;
 
 our $VERSION ||= '0.0development';
 
@@ -45,6 +46,8 @@ has http_agent_name => (
 	default => sub { __PACKAGE__.'/'.$VERSION },
 );
 
+has response => ( is => 'rw' );
+
 sub api_endpoint {
 	my ( $self ) = @_;
 	if ($self->sandbox) {
@@ -77,11 +80,10 @@ sub request {
 		$request->content(encode_json($data));
 	}
 	my $res = $self->_http_agent->request($request);
-	if ($res->is_success) {
-		return decode_json($res->content);
-	} else {
-		die __PACKAGE__.' HTTP request failed: '.$res->status_line, "\n";
-	}
+	$res = WWW::DNSMadeEasy::Response->new(response => $res);
+	$self->response($res); # so it's accessible
+	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
+	return $res->as_hashref;
 }
 
 #
@@ -92,10 +94,16 @@ sub path_domains { 'domains' }
 
 sub create_domain {
 	my ( $self, $domain_name ) = @_;
-	return WWW::DNSMadeEasy::Domain->create({
-		name => $domain_name,
-		dme => $self,
-	});
+
+	my $params = { dme => $self };
+	if (ref $domain_name eq 'HASH') {
+	    $params->{obj} = $domain_name;
+	    $params->{name} = $domain_name->{name}; # name is required
+	} else {
+	    $params->{name} = $domain_name;
+	}
+
+	return WWW::DNSMadeEasy::Domain->create($params);
 }
 
 sub domain {
@@ -133,7 +141,7 @@ sub all_domains {
     api_key => '1c1a3c91-4770-4ce7-96f4-54c0eb0e457a',
     secret => 'c9b5625f-9834-4ff8-baba-4ed5f32cae55',
   });
-  
+
   my $sandbox = WWW::DNSMadeEasy->new({
     api_key => '1c1a3c91-4770-4ce7-96f4-54c0eb0e457a',
     secret => 'c9b5625f-9834-4ff8-baba-4ed5f32cae55',
@@ -143,11 +151,11 @@ sub all_domains {
   my @domains = $dme->all_domains;
 
   my $domain = $dme->create_domain('universe.org');
-  
+
   my $other_domain = $dme->domain('existingdomain.com');
-  
+
   my @records = $other_domain->all_records;
-  
+
   my $record = $domain->create_record({
     ttl => 120,
     gtdLocation => 'DEFAULT',
@@ -157,7 +165,7 @@ sub all_domains {
   });
 
   $record->delete;
-  
+
   $domain->delete;
 
 =head1 DESCRIPTION
@@ -226,7 +234,7 @@ Repository
 
   http://github.com/Getty/p5-www-dnsmadeeasy
   Pull request and additional contributors are welcome
- 
+
 Issue Tracker
 
   http://github.com/Getty/p5-www-dnsmadeeasy/issues
