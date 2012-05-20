@@ -49,6 +49,15 @@ sub delete {
 	$self->domain->dme->request('DELETE',$self->path);
 }
 
+sub put {
+    my $self = shift;
+    my %data = ( @_ % 2 == 1 ) ? %{ $_[0] } : @_;
+    foreach my $k (keys %data) {
+        $self->obj->{$k} = $data{$k};
+    }
+    $self->domain->dme->request('PUT', $self->path, $self->obj);
+}
+
 1;
 
 =encoding utf8
@@ -86,6 +95,18 @@ sub delete {
 =method $obj->redirect_type
 
 =method $obj->hard_link
+
+=method $obj->put
+
+    $record->put( {
+        name => $name,
+        type => $type,
+        data => $data,
+        gtdLocation => $gtdLocation,
+        ttl => $ttl
+    } );
+
+to update the record
 
 =head1 SUPPORT
 
