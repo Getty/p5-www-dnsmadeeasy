@@ -40,31 +40,31 @@ sub put {
 
 sub path_records { shift->path.'/records' }
 
-sub name_server { shift->obj->{nameServer} }
-sub gtd_enabled { shift->obj->{gtdEnabled} }
-sub vanity_name_servers { shift->obj->{vanityNameServers} }
-sub vanity_id { shift->obj->{vanityId} }
+sub name_server { shift->response->data->{nameServer} }
+sub gtd_enabled { shift->response->data->{gtdEnabled} }
+sub vanity_name_servers { shift->response->data->{vanityNameServers} }
+sub vanity_id { shift->response->data->{vanityId} }
 
-has obj => (
+has response => (
 	is => 'ro',
-	builder => '_build_obj',
+	builder => '_build_response',
 	lazy => 1,
 );
 
-sub _build_obj {
+sub _build_response {
 	my ( $self ) = @_;
 	$self->dme->request('GET',$self->path);
 }
 
 sub create_record {
-	my ( $self, $obj ) = @_;
+	my ( $self, $data ) = @_;
 
-	my $post_result = $self->dme->request('POST',$self->path_records,$obj);
+	my $post_response = $self->dme->request('POST',$self->path_records,$data);
 
 	return WWW::DNSMadeEasy::Domain::Record->new({
 		domain => $self,
-		id => $_->{id},
-		obj => $post_result,
+		id => $post_response->data->{id},
+		response => $post_response,
 	});
 }
 
@@ -76,14 +76,16 @@ sub post {
 sub all_records {
 	my ( $self ) = @_;
 
-	my $data = $self->dme->request('GET',$self->path_records);
+	my $response = $self->dme->request('GET',$self->path_records);
 
+	my @response_records = @{$response->data};
 	my @records;
-	for (@{$data}) {
+	for (0..$#response_records) {
 		push @records, WWW::DNSMadeEasy::Domain::Record->new({
 			domain => $self,
-			id => $_->{id},
-			obj => $_,
+			id => $response_records[$_]->{id},
+			response => $response,
+			response_index => $_,
 		});
 	}
 	return @records;

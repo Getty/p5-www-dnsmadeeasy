@@ -2,42 +2,64 @@ package WWW::DNSMadeEasy::Domain::Record;
 # ABSTRACT: A domain record in the DNSMadeEasy API
 
 use Moo;
+use Carp;
 
 has id => (
-	# isa => 'Int',
-	is => 'ro',
-	required => 1,
+  # isa => 'Int',
+  is => 'ro',
+  required => 1,
 );
 
 has domain => (
-	# isa => 'WWW::DNSMadeEasy::Domain',
-	is => 'ro',
-	required => 1,
+  # isa => 'WWW::DNSMadeEasy::Domain',
+  is => 'ro',
+  required => 1,
 );
 
-has obj => (
-	# isa => 'HashRef',
-	is => 'ro',
-	builder => '_build_obj',
-	lazy => 1,
+has response_index => (
+  is => 'rw',
+  predicate => 'has_response_index',
 );
 
-sub _build_obj {
+has response => (
+  # isa => 'WWW::DNSMadeEasy::Response',
+  is => 'rw',
+  builder => 1,
+  lazy => 1,
+);
+
+sub _build_response {
 	my ( $self ) = @_;
 	$self->domain->dme->request('GET',$self->path);
 }
 
-sub ttl { shift->obj->{ttl} }
-sub gtd_location { shift->obj->{gtdLocation} }
-sub name { shift->obj->{name} }
-sub data { shift->obj->{data} }
-sub type { shift->obj->{type} }
-sub password { shift->obj->{password} }
-sub description { shift->obj->{description} }
-sub keywords { shift->obj->{keywords} }
-sub title { shift->obj->{title} }
-sub redirect_type { shift->obj->{redirectType} }
-sub hard_link { shift->obj->{hardLink} }
+has response_data => (
+  # isa => 'HashRef',
+  is => 'ro',
+  builder => 1,
+  lazy => 1,
+);
+
+sub _build_response_data {
+  my ( $self ) = @_;
+  if ($self->has_response_index) {
+    $self->response->as_hashref->
+  } else {
+
+  }
+}
+
+sub ttl { shift->response_data->{ttl} }
+sub gtd_location { shift->response_data->{gtdLocation} }
+sub name { shift->response_data->{name} }
+sub data { shift->response_data->{data} }
+sub type { shift->response_data->{type} }
+sub password { shift->response_data->{password} }
+sub description { shift->response_data->{description} }
+sub keywords { shift->response_data->{keywords} }
+sub title { shift->response_data->{title} }
+sub redirect_type { shift->response_data->{redirectType} }
+sub hard_link { shift->response_data->{hardLink} }
 
 sub path {
 	my ( $self ) = @_;
@@ -52,10 +74,12 @@ sub delete {
 sub put {
     my $self = shift;
     my %data = ( @_ % 2 == 1 ) ? %{ $_[0] } : @_;
-    foreach my $k (keys %data) {
-        $self->obj->{$k} = $data{$k};
-    }
-    $self->domain->dme->request('PUT', $self->path, $self->obj);
+    my $put_response = $self->domain->dme->request('PUT', $self->path, \%data);
+    return WWW::DNSMadeEasy::Domain::Record->new({
+      domain => $self->domain,
+      id => $put_response->data->{id},
+      response => $put_response,
+    });
 }
 
 1;

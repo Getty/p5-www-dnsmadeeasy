@@ -1,27 +1,47 @@
 package WWW::DNSMadeEasy::Response;
-
-#  ABSTRACT: DNSMadeEasy Response
+# ABSTRACT: DNSMadeEasy Response
 
 use Moo;
 use JSON;
 
-has response => (
+has http_response => (
     is       => 'ro',
     required => 1,
     handles   => ['is_success', 'content', 'decoded_content', 'status_line', 'code', 'header', 'as_string'],
 );
 
-sub as_hashref {
+has data => (
+    is => 'ro',
+    lazy => 1,
+    builder => 1,
+);
+
+sub _build_as_hashref {
     my ($self) = @_;
-    return unless $self->response->content; # DELETE return 200 but empty content
-    return decode_json($self->response->content);
+    return unless $self->http_response->content; # DELETE return 200 but empty content
+    return decode_json($self->http_response->content);
 }
 
 sub error {
     my ($self) = @_;
-    my $err = $self->as_hashref->{error};
+    my $err = $self->data->{error};
     $err = [$err] unless ref($err) eq 'ARRAY';
     return wantarray ? @$err : join("\n", @$err);
+}
+
+sub request_id {
+  my ( $self ) = @_;
+  $self->header('x-dnsme-requestId');
+}
+
+sub request_limit {
+  my ( $self ) = @_;
+  $self->header('x-dnsme-requestLimit');
+}
+
+sub requests_remaining {
+  my ( $self ) = @_;
+  $self->header('x-dnsme-requestsRemaining');
 }
 
 1;

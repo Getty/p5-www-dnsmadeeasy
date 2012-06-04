@@ -29,6 +29,15 @@ has sandbox => (
 	default => sub { 0 },
 );
 
+has api_version => (
+	isa => sub {
+		$_ eq '1.2' or
+		$_ eq '2.0'
+	},
+	is => 'ro',
+	default => sub { '1.2' },
+);
+
 has _http_agent => (
 	is => 'ro',
 	lazy => 1,
@@ -46,14 +55,16 @@ has http_agent_name => (
 	default => sub { __PACKAGE__.'/'.$VERSION },
 );
 
-has response => ( is => 'rw' );
+has last_response => (
+	is => 'rw',
+);
 
 sub api_endpoint {
 	my ( $self ) = @_;
 	if ($self->sandbox) {
-		return 'http://api.sandbox.dnsmadeeasy.com/V1.2/';
+		return 'http://api.sandbox.dnsmadeeasy.com/V'.$self->api_version.'/';
 	} else {
-		return 'http://api.dnsmadeeasy.com/V1.2/';
+		return 'http://api.dnsmadeeasy.com/V'.$self->api_version.'/';
 	}
 }
 
@@ -80,10 +91,25 @@ sub request {
 		$request->content(encode_json($data));
 	}
 	my $res = $self->_http_agent->request($request);
-	$res = WWW::DNSMadeEasy::Response->new(response => $res);
-	$self->response($res); # so it's accessible
+	$res = WWW::DNSMadeEasy::Response->new( http_response => $res );
+	$self->last_response($res);
 	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
-	return $res->as_hashref;
+	return $res;
+}
+
+sub requests_remaining {
+	my ( $self ) = @_;
+	return $self->last_response ? $self->last_response->requests_remaining : undef;
+}
+
+sub last_request_id {
+	my ( $self ) = @_;
+	return $self->last_response ? $self->last_response->request_id : undef;
+}
+
+sub request_limit {
+	my ( $self ) = @_;
+	return $self->last_response ? $self->last_response->request_limit : undef;
 }
 
 #
@@ -199,14 +225,6 @@ Arguments: $name
 Return value: L<WWW::DNSMadeEasy::Domain>
 
 Will be creating the domain $name on your account and returns the L<WWW::DNSMadeEasy::Domain> for this domain.
-
-=method $obj->domain
-
-Arguments: $name
-
-Return value: L<WWW::DNSMadeEasy::Domain>
-
-Returns the L<WWW::DNSMadeEasy::Domain> of the domain with name $name.
 
 =method $obj->domain
 
