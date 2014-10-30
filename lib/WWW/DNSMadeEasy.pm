@@ -15,101 +15,101 @@ use WWW::DNSMadeEasy::Response;
 our $VERSION ||= '0.0development';
 
 has api_key => (
-	is => 'ro',
-	required => 1,
+    is => 'ro',
+    required => 1,
 );
 
 has secret => (
-	is => 'ro',
-	required => 1,
+    is => 'ro',
+    required => 1,
 );
 
 has sandbox => (
-	is => 'ro',
-	default => sub { 0 },
+    is => 'ro',
+    default => sub { 0 },
 );
 
 has api_version => (
-	isa => sub {
-		$_ eq '1.2' or
-		$_ eq '2.0'
-	},
-	is => 'ro',
-	default => sub { '1.2' },
+    isa => sub {
+        $_ eq '1.2' or
+        $_ eq '2.0'
+    },
+    is => 'ro',
+    default => sub { '1.2' },
 );
 
 has _http_agent => (
-	is => 'ro',
-	lazy => 1,
-	default => sub {
-		my $self = shift;
-		my $ua = LWP::UserAgent->new;
-		$ua->agent($self->http_agent_name);
-		return $ua;
-	},
+    is => 'ro',
+    lazy => 1,
+    default => sub {
+        my $self = shift;
+        my $ua = LWP::UserAgent->new;
+        $ua->agent($self->http_agent_name);
+        return $ua;
+    },
 );
 
 has http_agent_name => (
-	is => 'ro',
-	lazy => 1,
-	default => sub { __PACKAGE__.'/'.$VERSION },
+    is => 'ro',
+    lazy => 1,
+    default => sub { __PACKAGE__.'/'.$VERSION },
 );
 
 has last_response => (
-	is => 'rw',
+    is => 'rw',
 );
 
 sub api_endpoint {
-	my ( $self ) = @_;
-	if ($self->sandbox) {
-		return 'http://api.sandbox.dnsmadeeasy.com/V'.$self->api_version.'/';
-	} else {
-		return 'http://api.dnsmadeeasy.com/V'.$self->api_version.'/';
-	}
+    my ( $self ) = @_;
+    if ($self->sandbox) {
+        return 'http://api.sandbox.dnsmadeeasy.com/V'.$self->api_version.'/';
+    } else {
+        return 'http://api.dnsmadeeasy.com/V'.$self->api_version.'/';
+    }
 }
 
 sub get_request_headers {
-	my ( $self, $dt ) = @_;
-	$dt = DateTime->now->set_time_zone( 'GMT' ) if !$dt;
-	my $date_string = DateTime::Format::HTTP->format_datetime($dt);
-	return {
-		'x-dnsme-requestDate' => $date_string,
-		'x-dnsme-apiKey' => $self->api_key,
-		'x-dnsme-hmac' => hmac_sha1_hex($date_string, $self->secret),
-	};
+    my ( $self, $dt ) = @_;
+    $dt = DateTime->now->set_time_zone( 'GMT' ) if !$dt;
+    my $date_string = DateTime::Format::HTTP->format_datetime($dt);
+    return {
+        'x-dnsme-requestDate' => $date_string,
+        'x-dnsme-apiKey' => $self->api_key,
+        'x-dnsme-hmac' => hmac_sha1_hex($date_string, $self->secret),
+    };
 }
 
 sub request {
-	my ( $self, $method, $path, $data ) = @_;
-	my $url = $self->api_endpoint.$path;
-	my $request = HTTP::Request->new( $method => $url );
-	my $headers = $self->get_request_headers;
-	$request->header($_ => $headers->{$_}) for (keys %{$headers});
-	$request->header('Accept' => 'application/json');
-	if (defined $data) {
-		$request->header('Content-Type' => 'application/json');
-		$request->content(encode_json($data));
-	}
-	my $res = $self->_http_agent->request($request);
-	$res = WWW::DNSMadeEasy::Response->new( http_response => $res );
-	$self->last_response($res);
-	die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
-	return $res;
+    my ( $self, $method, $path, $data ) = @_;
+    my $url = $self->api_endpoint.$path;
+    my $request = HTTP::Request->new( $method => $url );
+    my $headers = $self->get_request_headers;
+    $request->header($_ => $headers->{$_}) for (keys %{$headers});
+    $request->header('Accept' => 'application/json');
+    if (defined $data) {
+        $request->header('Content-Type' => 'application/json');
+        $request->content(encode_json($data));
+    }
+    my $res = $self->_http_agent->request($request);
+    $res = WWW::DNSMadeEasy::Response->new( http_response => $res );
+    $self->last_response($res);
+    die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
+    return $res;
 }
 
 sub requests_remaining {
-	my ( $self ) = @_;
-	return $self->last_response ? $self->last_response->requests_remaining : undef;
+    my ( $self ) = @_;
+    return $self->last_response ? $self->last_response->requests_remaining : undef;
 }
 
 sub last_request_id {
-	my ( $self ) = @_;
-	return $self->last_response ? $self->last_response->request_id : undef;
+    my ( $self ) = @_;
+    return $self->last_response ? $self->last_response->request_id : undef;
 }
 
 sub request_limit {
-	my ( $self ) = @_;
-	return $self->last_response ? $self->last_response->request_limit : undef;
+    my ( $self ) = @_;
+    return $self->last_response ? $self->last_response->request_limit : undef;
 }
 
 #
@@ -119,39 +119,39 @@ sub request_limit {
 sub path_domains { 'domains' }
 
 sub create_domain {
-	my ( $self, $domain_name ) = @_;
+    my ( $self, $domain_name ) = @_;
 
-	my $params = { dme => $self };
-	if (ref $domain_name eq 'HASH') {
-	    $params->{obj} = $domain_name;
-	    $params->{name} = $domain_name->{name}; # name is required
-	} else {
-	    $params->{name} = $domain_name;
-	}
+    my $params = { dme => $self };
+    if (ref $domain_name eq 'HASH') {
+        $params->{obj} = $domain_name;
+        $params->{name} = $domain_name->{name}; # name is required
+    } else {
+        $params->{name} = $domain_name;
+    }
 
-	return WWW::DNSMadeEasy::Domain->create($params);
+    return WWW::DNSMadeEasy::Domain->create($params);
 }
 
 sub domain {
-	my ( $self, $domain_name ) = @_;
-	return WWW::DNSMadeEasy::Domain->new({
-		name => $domain_name,
-		dme => $self,
-	});
+    my ( $self, $domain_name ) = @_;
+    return WWW::DNSMadeEasy::Domain->new({
+        name => $domain_name,
+        dme => $self,
+    });
 }
 
 sub all_domains {
-	my ( $self ) = @_;
-	my $data = $self->request('GET',$self->path_domains);
-	return if !$data->{list};
-	my @domains;
-	for (@{$data->{list}}) {
-		push @domains, WWW::DNSMadeEasy::Domain->new({
-			dme => $self,
-			name => $_,
-		});
-	}
-	return @domains;
+    my ( $self ) = @_;
+    my $data = $self->request('GET',$self->path_domains);
+    return if !$data->{list};
+    my @domains;
+    for (@{$data->{list}}) {
+        push @domains, WWW::DNSMadeEasy::Domain->new({
+            dme => $self,
+            name => $_,
+        });
+    }
+    return @domains;
 }
 
 1;
