@@ -30,18 +30,18 @@ sub error {
 }
 
 sub request_id {
-  my ( $self ) = @_;
-  $self->header('x-dnsme-requestId');
+    my ( $self ) = @_;
+    $self->header('x-dnsme-requestId');
 }
 
 sub request_limit {
-  my ( $self ) = @_;
-  $self->header('x-dnsme-requestLimit');
+    my ( $self ) = @_;
+    $self->header('x-dnsme-requestLimit');
 }
 
 sub requests_remaining {
-  my ( $self ) = @_;
-  $self->header('x-dnsme-requestsRemaining');
+    my ( $self ) = @_;
+    $self->header('x-dnsme-requestsRemaining');
 }
 
 1;
