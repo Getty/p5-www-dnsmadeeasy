@@ -5,48 +5,48 @@ use Moo;
 use Carp;
 
 has id => (
-  # isa => 'Int',
-  is => 'ro',
-  required => 1,
+    # isa => 'Int',
+    is => 'ro',
+    required => 1,
 );
 
 has domain => (
-  # isa => 'WWW::DNSMadeEasy::Domain',
-  is => 'ro',
-  required => 1,
+    # isa => 'WWW::DNSMadeEasy::Domain',
+    is => 'ro',
+    required => 1,
 );
 
 has response_index => (
-  is => 'rw',
-  predicate => 'has_response_index',
+    is => 'rw',
+    predicate => 'has_response_index',
 );
 
 has response => (
-  # isa => 'WWW::DNSMadeEasy::Response',
-  is => 'rw',
-  builder => 1,
-  lazy => 1,
+    # isa => 'WWW::DNSMadeEasy::Response',
+    is => 'rw',
+    builder => 1,
+    lazy => 1,
 );
 
 sub _build_response {
-	my ( $self ) = @_;
-	$self->domain->dme->request('GET',$self->path);
+    my ( $self ) = @_;
+    $self->domain->dme->request('GET',$self->path);
 }
 
 has response_data => (
-  # isa => 'HashRef',
-  is => 'ro',
-  builder => 1,
-  lazy => 1,
+    # isa => 'HashRef',
+    is => 'ro',
+    builder => 1,
+    lazy => 1,
 );
 
 sub _build_response_data {
-  my ( $self ) = @_;
-  if ($self->has_response_index) {
-    $self->response->as_hashref->
-  } else {
-
-  }
+    my ( $self ) = @_;
+    if ($self->has_response_index) {
+        $self->response->as_hashref->
+    } else {
+  
+    }
 }
 
 sub ttl { shift->response_data->{ttl} }
@@ -62,13 +62,13 @@ sub redirect_type { shift->response_data->{redirectType} }
 sub hard_link { shift->response_data->{hardLink} }
 
 sub path {
-	my ( $self ) = @_;
-	$self->domain->path_records.'/'.$self->id;
+    my ( $self ) = @_;
+    $self->domain->path_records.'/'.$self->id;
 }
 
 sub delete {
-	my ( $self ) = @_;
-	$self->domain->dme->request('DELETE',$self->path);
+    my ( $self ) = @_;
+    $self->domain->dme->request('DELETE',$self->path);
 }
 
 sub put {
@@ -76,9 +76,9 @@ sub put {
     my %data = ( @_ % 2 == 1 ) ? %{ $_[0] } : @_;
     my $put_response = $self->domain->dme->request('PUT', $self->path, \%data);
     return WWW::DNSMadeEasy::Domain::Record->new({
-      domain => $self->domain,
-      id => $put_response->data->{id},
-      response => $put_response,
+        domain => $self->domain,
+        id => $put_response->data->{id},
+        response => $put_response,
     });
 }
 
