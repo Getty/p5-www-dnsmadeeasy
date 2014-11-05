@@ -42,11 +42,12 @@ has response_data => (
 
 sub _build_response_data {
     my ( $self ) = @_;
-    if ($self->has_response_index) {
-        $self->response->as_hashref->
-    } else {
+    return {};
+    #if ($self->has_response_index) {
+    #    $self->response->as_hashref->
+    #} else {
   
-    }
+    #}
 }
 
 sub ttl { shift->response_data->{ttl} }
