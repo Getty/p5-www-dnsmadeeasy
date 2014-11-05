@@ -1,6 +1,8 @@
 package WWW::DNSMadeEasy;
 # ABSTRACT: Accessing DNSMadeEasy API
 
+use feature qw/say/;
+
 use Moo;
 use DateTime;
 use DateTime::Format::HTTP;
@@ -10,6 +12,7 @@ use HTTP::Request;
 use JSON;
 
 use WWW::DNSMadeEasy::Domain;
+use WWW::DNSMadeEasy::ManagedDomain;
 use WWW::DNSMadeEasy::Response;
 
 our $VERSION ||= '0.0development';
@@ -31,8 +34,10 @@ has sandbox => (
 
 has api_version => (
     isa => sub {
-        $_ eq '1.2' or
-        $_ eq '2.0'
+        $_ && (
+            $_ eq '1.2' or
+            $_ eq '2.0'
+        )
     },
     is => 'ro',
     default => sub { '1.2' },
@@ -90,8 +95,10 @@ sub request {
         $request->header('Content-Type' => 'application/json');
         $request->content(encode_json($data));
     }
+    say $request->as_string;
     my $res = $self->_http_agent->request($request);
     $res = WWW::DNSMadeEasy::Response->new( http_response => $res );
+    say $res->as_string;
     $self->last_response($res);
     die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
     return $res;
@@ -113,7 +120,7 @@ sub request_limit {
 }
 
 #
-# DOMAINS
+# V1 DOMAINS
 #
 
 sub path_domains { 'domains' }
@@ -142,7 +149,7 @@ sub domain {
 
 sub all_domains {
     my ( $self ) = @_;
-    my $data = $self->request('GET',$self->path_domains);
+    my $data = $self->request('GET',$self->path_domains)->data;
     return if !$data->{list};
     my @domains;
     for (@{$data->{list}}) {
@@ -152,6 +159,32 @@ sub all_domains {
         });
     }
     return @domains;
+}
+
+#
+# V2
+#
+
+sub managed_domains {
+    my ($self) = @_;
+
+    my $data = $self->request('GET' => 'dns/managed/')->data->{data};
+
+    my @domains;
+    push @domains, WWW::DNSMadeEasy::ManagedDomain->new({
+        dme  => $self,
+        name => $_->{name},
+    }) for @$data;
+
+    return @domains;
+}
+
+sub create_managed_domain {
+    my ($self, $domain) = @_;
+    return WWW::DNSMadeEasy::ManagedDomain->create(
+        name => $domain,
+        dme  => $self,
+    );
 }
 
 1;

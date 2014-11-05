@@ -10,13 +10,7 @@ has http_response => (
     handles   => ['is_success', 'content', 'decoded_content', 'status_line', 'code', 'header', 'as_string'],
 );
 
-has data => (
-    is => 'ro',
-    lazy => 1,
-    builder => 1,
-);
-
-sub _build_as_hashref {
+sub data {
     my ($self) = @_;
     return unless $self->http_response->content; # DELETE return 200 but empty content
     return decode_json($self->http_response->content);
