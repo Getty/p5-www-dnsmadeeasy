@@ -1,8 +1,7 @@
 #!/usr/bin/env perl
 
-use strict;
-use warnings;
-use Test::More;
+use Test::Most;
+use Carp::Always;
 
 use WWW::DNSMadeEasy;
 
@@ -13,13 +12,14 @@ SKIP: {
 	
 	my $dme = WWW::DNSMadeEasy->new({
 		api_key => $ENV{WWW_DNSMADEEASY_TEST_APIKEY},
-		secret => $ENV{WWW_DNSMADEEASY_TEST_SECRET},
+		secret  => $ENV{WWW_DNSMADEEASY_TEST_SECRET},
 		sandbox => 1,
 	});
 
 	isa_ok($dme,'WWW::DNSMadeEasy');
 
 	my @domains = $dme->all_domains;
+	use DDP; p @domains;
 	
 }
 
