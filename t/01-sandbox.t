@@ -1,14 +1,13 @@
 #!/usr/bin/env perl
 
 use Test::Most;
-use Carp::Always;
-
 use WWW::DNSMadeEasy;
 
 SKIP: {
 
 	skip "we need WWW_DNSMADEEASY_TEST_APIKEY and WWW_DNSMADEEASY_TEST_SECRET", 1
-		unless defined $ENV{WWW_DNSMADEEASY_TEST_APIKEY} && defined $ENV{WWW_DNSMADEEASY_TEST_SECRET};
+		unless defined $ENV{WWW_DNSMADEEASY_TEST_APIKEY} &&
+		       defined $ENV{WWW_DNSMADEEASY_TEST_SECRET};
 	
 	my $dme = WWW::DNSMadeEasy->new({
 		api_key => $ENV{WWW_DNSMADEEASY_TEST_APIKEY},
@@ -19,7 +18,7 @@ SKIP: {
 	isa_ok($dme,'WWW::DNSMadeEasy');
 
 	my @domains = $dme->all_domains;
-	use DDP; p @domains;
+	#use DDP; p @domains;
 	
 }
 

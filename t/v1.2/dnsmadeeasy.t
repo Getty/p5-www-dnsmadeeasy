@@ -1,29 +1,26 @@
+#!/usr/bin/env perl
+
 use Test::Most;
 use WWW::DNSMadeEasy;
 
-my $dme = WWW::DNSMadeEasy->new(
-    api_key     => $ENV{WWW_DNSMADEEASY_TEST_APIKEY},
-    secret      => $ENV{WWW_DNSMADEEASY_TEST_SECRET},
-    sandbox     => 0,
-    api_version => '1.2',
-);
+SKIP: {
 
-isa_ok($dme,'WWW::DNSMadeEasy');
+	skip "we need WWW_DNSMADEEASY_TEST_APIKEY and WWW_DNSMADEEASY_TEST_SECRET", 1
+		unless defined $ENV{WWW_DNSMADEEASY_TEST_APIKEY} && 
+               defined $ENV{WWW_DNSMADEEASY_TEST_SECRET};
 
-my @domains = $dme->all_domains;
-#is scalar @domains, 0, "no domains";
+    my $dme = WWW::DNSMadeEasy->new(
+        api_key     => $ENV{WWW_DNSMADEEASY_TEST_APIKEY},
+        secret      => $ENV{WWW_DNSMADEEASY_TEST_SECRET},
+        sandbox     => 1,
+        api_version => '1.2',
+    );
 
-foreach my $domain (@domains) {
-    next unless $domain->name eq 'duckduckgo.com';
-    my @records = $domain->all_records;
-    last;
+    isa_ok($dme,'WWW::DNSMadeEasy');
+
+    my @domains = $dme->all_domains;
+    #use DDP; p @domains;
 }
-
-#$dme->create_domain('example.com');
-#@domains = $dme->all_domains;
-#is scalar @domains, 1, "created a domain";
-
-#use DDP; p @domains;
     
 
 done_testing;
