@@ -2,47 +2,45 @@ package WWW::DNSMadeEasy::ManagedDomain;
 # ABSTRACT: A managed domain in the DNSMadeEasy API
 
 use Moo;
+use String::CamelSnakeKebab qw/lower_camel_case/;
 use WWW::DNSMadeEasy::ManagedDomain::Record;
-use feature qw/say/;
 
-has dme      => (is => 'ro', required => 1);
+has dme => (
+    is       => 'ro',
+    required => 1,
+    handles  => {
+        request => 'request',
+        path    => 'domain_path',
+    }
+);
+
 has name     => (is => 'ro', required => 1);
 has response => (is => 'rw', builder  => 1, lazy => 1);
 
 sub _build_response {
     my ($self) = @_;
-	$self->dme->request(GET => $self->path . 'id/' . $self->name)->data;
+    $self->request(GET => $self->path . 'id/' . $self->name)->data;
 }
 
-sub path                   {'dns/managed/'}
-sub active_third_parties   { shift->response->{activeThirdParties} }
-sub created                { shift->response->{created} }
-sub delegate_name_servers  { shift->response->{delegateNameServers} }
-sub folder_id              { shift->response->{folderId} }
-sub gtd_enabled            { shift->response->{gtdEnabled} }
-sub id                     { shift->response->{id} }
-sub name_servers           { shift->response->{nameServers} }
-sub pending_action_id      { shift->response->{pendingActionId} }
-sub process_multi          { shift->response->{processMulti} }
-sub updated                { shift->response->{updated} }
-
-sub create {
-	my ($class, %args) = @_;
-	my $self = $class->new(%args);
-    delete $args{dme};
-	my $response = $self->dme->request(POST => $self->path, \%args)->data;
-    $self->response($response);
-	return $self;
-}
+sub active_third_parties  { shift->response->{activeThirdParties}  }
+sub created               { shift->response->{created}             }
+sub delegate_name_servers { shift->response->{delegateNameServers} }
+sub folder_id             { shift->response->{folderId}            }
+sub gtd_enabled           { shift->response->{gtdEnabled}          }
+sub id                    { shift->response->{id}                  }
+sub name_servers          { shift->response->{nameServers}         }
+sub pending_action_id     { shift->response->{pendingActionId}     }
+sub process_multi         { shift->response->{processMulti}        }
+sub updated               { shift->response->{updated}             }
 
 sub delete {
-	my ($self) = @_;
-	$self->dme->request(DELETE => $self->path . $self->id);
+    my ($self) = @_;
+    $self->request(DELETE => $self->path . $self->id);
 }
 
 sub update {
-	my ($self, $data) = @_;
-	my $res = $self->dme->request(PUT => $self->path . $self->id, $data)->data;
+    my ($self, $data) = @_;
+    my $res = $self->request(PUT => $self->path . $self->id, $data)->data;
     $self->response($res);
 }
 
@@ -50,7 +48,7 @@ sub wait_for_delete {
     my ($self) = @_;
     while (1) {
         eval { $self->response($self->_build_response) };
-        last unless $@ && $@ =~ /404/;
+        last if $@ && $@ =~ /404/;
         sleep 5;
     }
 }
@@ -64,36 +62,40 @@ sub wait_for_pending_action {
     }
 }
 
-sub path_records { shift->path . $self->id . '/records' }
+#
+# RECORDS
+#
+
+sub records_path { $_[0]->path . $_[0]->id . '/records/' }
 
 sub create_record {
-	my ( $self, $data ) = @_;
+    my ( $self, %data ) = @_;
 
-	my $post_response = $self->dme->request('POST',$self->path_records,$data);
+    my %req;
+    for my $old (keys %data) {
+        my $new = lower_camel_case($old);
+        $req{$new} = $data{$old};
+    }
 
-	return WWW::DNSMadeEasy::ManagedDomain::Record->new({
-		domain => $self,
-		id => $post_response->data->{id},
-		response => $post_response,
-	});
+	my $response = $self->request(POST => $self->records_path, \%req)->data;
+	return WWW::DNSMadeEasy::ManagedDomain::Record->new(
+        response => $response,
+        domain   => $self,
+    );
 }
 
+# TODO - do multiple gets when max number of records is reached
 sub records {
-	my ( $self ) = @_;
+    my ($self) = @_;
+    my $data   = $self->request(GET => $self->records_path)->data->{data};
 
-	my $response = $self->dme->request('GET',$self->path_records);
+    my @records;
+    for my $response (@$data) {
+        push @records, WWW::DNSMadeEasy::ManagedDomain::Record
+            ->new(response => $response, domain => $self);
+    }
 
-	my @response_records = @{$response->data};
-	my @records;
-	for (0..$#response_records) {
-		push @records, WWW::DNSMadeEasy::ManagedDomain::Record->new({
-			domain => $self,
-			id => $response_records[$_]->{id},
-			response => $response,
-			response_index => $_,
-		});
-	}
-	return @records;
+    return @records;
 }
 
 1;

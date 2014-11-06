@@ -17,20 +17,12 @@ use WWW::DNSMadeEasy::Response;
 
 our $VERSION ||= '0.0development';
 
-has api_key => (
-    is => 'ro',
-    required => 1,
-);
-
-has secret => (
-    is => 'ro',
-    required => 1,
-);
-
-has sandbox => (
-    is => 'ro',
-    default => sub { 0 },
-);
+has api_key         => (is => 'ro', required => 1);
+has secret          => (is => 'ro', required => 1);
+has sandbox         => (is => 'ro', default => sub { 0 });
+has last_response   => (is => 'rw');
+has _http_agent     => (is => 'lazy');
+has http_agent_name => (is => 'lazy');
 
 has api_version => (
     isa => sub {
@@ -43,26 +35,14 @@ has api_version => (
     default => sub { '1.2' },
 );
 
-has _http_agent => (
-    is => 'ro',
-    lazy => 1,
-    default => sub {
-        my $self = shift;
-        my $ua = LWP::UserAgent->new;
-        $ua->agent($self->http_agent_name);
-        return $ua;
-    },
-);
+sub _build__http_agent {
+    my $self = shift;
+    my $ua = LWP::UserAgent->new;
+    $ua->agent($self->http_agent_name);
+    return $ua;
+}
 
-has http_agent_name => (
-    is => 'ro',
-    lazy => 1,
-    default => sub { __PACKAGE__.'/'.$VERSION },
-);
-
-has last_response => (
-    is => 'rw',
-);
+sub _build_http_agent_name { __PACKAGE__.'/'.$VERSION }
 
 sub api_endpoint {
     my ( $self ) = @_;
@@ -94,11 +74,11 @@ sub request {
     if (defined $data) {
         $request->header('Content-Type' => 'application/json');
         $request->content(encode_json($data));
+        use DDP; p $data if $ENV{DEBUG};
     }
-    say $request->as_string;
     my $res = $self->_http_agent->request($request);
     $res = WWW::DNSMadeEasy::Response->new( http_response => $res );
-    say $res->as_string;
+    say $res->content if $ENV{DEBUG};
     $self->last_response($res);
     die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
     return $res;
@@ -120,7 +100,7 @@ sub request_limit {
 }
 
 #
-# V1 DOMAINS
+# V1 DOMAINS (TODO - move this into a role)
 #
 
 sub path_domains { 'domains' }
@@ -162,13 +142,22 @@ sub all_domains {
 }
 
 #
-# V2
+# V2 Managed domains (TODO - move this into a role)
 #
+
+sub domain_path { 'dns/managed/' }
+
+sub get_managed_domain {
+    my ($self, $name) = @_;
+    return WWW::DNSMadeEasy::ManagedDomain->new(
+        name => $name,
+        dme  => $self,
+    );
+}
 
 sub managed_domains {
     my ($self) = @_;
-
-    my $data = $self->request('GET' => 'dns/managed/')->data->{data};
+    my $data   = $self->request('GET' => $self->domain_path)->data->{data};
 
     my @domains;
     push @domains, WWW::DNSMadeEasy::ManagedDomain->new({
@@ -180,12 +169,16 @@ sub managed_domains {
 }
 
 sub create_managed_domain {
-    my ($self, $domain) = @_;
-    return WWW::DNSMadeEasy::ManagedDomain->create(
-        name => $domain,
-        dme  => $self,
+    my ($self, $name) = @_;
+    my $data     = {name => $name};
+    my $response = $self->request(POST => $self->domain_path, $data)->data;
+    return WWW::DNSMadeEasy::ManagedDomain->new(
+        dme      => $self,
+        name     => $response->{name},
+        response => $response,
     );
 }
+
 
 1;
 
