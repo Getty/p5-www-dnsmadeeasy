@@ -48,51 +48,61 @@ sub update {
 
 =encoding utf8
 
-=head1 ATTRIBUTES
-
-=attr id
-
-=attr domain
-
-=attr obj
-
 =head1 METHODS
 
-=method $obj->delete
+=method delete()
 
-=method $obj->ttl
+=method update(%data)
 
-=method $obj->gtd_location
+=method response
 
-=method $obj->name
+Returns this object as a hashreference.
 
-=method $obj->data
+=head1 RECORD ATTRIBUTES
 
-=method $obj->type
+=method description
 
-=method $obj->password
+=method dynamic_dns
 
-=method $obj->description
+=method failed
 
-=method $obj->keywords
+=method failover
 
-=method $obj->title
+=method gtd_location
 
-=method $obj->redirect_type
+=method hard_link
 
-=method $obj->hard_link
+=method id
 
-=method $obj->put
+=method keywords
 
-    $record->put( {
-        name => $name,
-        type => $type,
-        data => $data,
-        gtdLocation => $gtdLocation,
-        ttl => $ttl
-    } );
+=method monitor
 
-to update the record
+=method mxLevel
+
+=method name
+
+=method password
+
+=method port
+
+=method priority
+
+=method redirect_type
+
+=method source
+
+=method source_id
+
+=method title
+
+=method ttl
+
+=method type
+
+=method value
+
+=method weight
 
 =head1 SUPPORT
 

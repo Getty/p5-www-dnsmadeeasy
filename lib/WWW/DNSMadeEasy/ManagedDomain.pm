@@ -102,37 +102,43 @@ sub records {
 
 =encoding utf8
 
-=head1 ATTRIBUTES
-
-=attr name
-
-Name of the domain
-
-=attr dme
-
-L<WWW::DNSMadeEasy> object
-
-=attr obj
-
-Hash object representation given by DNSMadeEasy.
-
 =head1 METHODS
 
-=method $obj->put
+=method delete()
 
-=method $obj->delete
+=method update(%data)
 
-=method $obj->all_records
+=method records()
 
-=method $obj->create_record
+Returns a list of L<WWW::DNSMadeEasy::ManagedDomain::Record> objects.
 
-=method $obj->name_server
+=method response
 
-=method $obj->gtd_enabled
+Returns this object as a hashreference.
 
-=method $obj->vanity_name_servers
+=head1 MANAGED DOMAIN ATTRIBUTES
 
-=method $obj->vanity_id
+=method name
+
+=method active_third_parties
+
+=method created
+
+=method delegate_name_servers
+
+=method folder_id
+
+=method gtd_enabled
+
+=method id
+
+=method name_servers
+
+=method pending_action_id
+
+=method process_multi
+
+=method updated
 
 =head1 SUPPORT
 

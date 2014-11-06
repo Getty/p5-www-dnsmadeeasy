@@ -187,52 +187,60 @@ sub create_managed_domain {
 
 =head1 SYNOPSIS
 
-  use WWW::DNSMadeEasy; # or WWW::DME as shortname
-
-  my $dme = WWW::DNSMadeEasy->new({
-    api_key => '1c1a3c91-4770-4ce7-96f4-54c0eb0e457a',
-    secret => 'c9b5625f-9834-4ff8-baba-4ed5f32cae55',
-  });
-
-  my $sandbox = WWW::DNSMadeEasy->new({
-    api_key => '1c1a3c91-4770-4ce7-96f4-54c0eb0e457a',
-    secret => 'c9b5625f-9834-4ff8-baba-4ed5f32cae55',
-    sandbox => 1,
-  });
-
-  my @domains = $dme->all_domains;
-
-  my $domain = $dme->create_domain('universe.org');
-
-  my $other_domain = $dme->domain('existingdomain.com');
-
-  my @records = $other_domain->all_records;
-
-  my $record = $domain->create_record({
-    ttl => 120,
-    gtdLocation => 'DEFAULT',
-    name => 'www',
-    data => '1.2.3.4',
-    type => 'A',
-  });
-
-  $record->delete;
-
-  $domain->delete;
+    use WWW::DNSMadeEasy; # or WWW::DME as shortname
+  
+    # v2 api examples
+    my $dme = WWW::DNSMadeEasy->new({
+        api_key     => '1c1a3c91-4770-4ce7-96f4-54c0eb0e457a',
+        secret      => 'c9b5625f-9834-4ff8-baba-4ed5f32cae55',
+        sandbox     => 1,     # defaults to 0
+        api_version => '2.0', # defaults to '1.0'
+    });
+    my @managed_domains = $dme->managed_domains;
+    my $managed_domain  = $dme->get_managed_domain('example.com');
+    my @records         = $domain->records;
+    my $record          = $domain->create_record(
+        ttl          => 120,
+        gtd_location => 'DEFAULT',
+        name         => 'www',
+        data         => '1.2.3.4',
+        type         => 'A',
+    );
+    $record->delete;
+    $domain->delete;
+  
+    # v1 api examples
+    my $dme = WWW::DNSMadeEasy->new({
+        api_key => '1c1a3c91-4770-4ce7-96f4-54c0eb0e457a',
+        secret  => 'c9b5625f-9834-4ff8-baba-4ed5f32cae55',
+        sandbox => 1, # defaults to 0
+    });
+    my @domains = $dme->all_domains;
+    my $domain  = $dme->create_domain('example.com');
+    my @records = $domain->all_records;
+    my $record = $domain->create_record({
+        ttl => 120,
+        gtdLocation => 'DEFAULT',
+        name => 'www',
+        data => '1.2.3.4',
+        type => 'A',
+    });
+    $record->delete;
+    $domain->delete;
 
 =head1 DESCRIPTION
 
-This distribution gives you an easy access to the DNSMadeEasy API. You require a business or corporate account to use this. You can't use it with the free test account neither with the small business account. This module doesnt check any input values, I suggest so far that you know what you do.
+This distribution gives you easy access to the DNSMadeEasy API. You require a business or corporate account to use this. You can't use it with the free test account neither with the small business account. This module doesnt check any input values, I suggest so far that you know what you do.
 
 =head1 ATTRIBUTES
 
 =attr api_key
 
-Here you must give the API key which you can obtain from this page L<https://cp.dnsmadeeasy.com/account/info>.
+The API key which you can obtain from this page L<https://cp.dnsmadeeasy.com/account/info>.
 
 =attr secret
 
-You get the secret from the same page where you get the API key.
+The secret can be found on the same page as the API key.
 
 =attr sandbox
 
@@ -242,7 +250,21 @@ If set to true, this will activate the usage of the sandbox, instead of the live
 
 Here you can set a different http useragent for the requests, it defaults to the package name including the distribution version.
 
-=head1 METHODS
+=head1 METHODS FOR API V2
+
+=method create_managed_domain($name)
+
+Creates the domain $name and returns a L<WWW::DNSMadeEasy::ManagedDomain> object.
+
+=method get_managed_domain($name)
+
+Searches for a domain with the name $name and returns a L<WWWW::DNSMadeEasy::ManagedDomain> object.
+
+=method managed_domains()
+
+Returns a list of L<WWWW::DNSMadeEasy::ManagedDomain> objects representing all domains.
+
+=head1 METHODS FOR API V1
 
 =method $obj->create_domain
 
