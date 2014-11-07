@@ -10,7 +10,9 @@ has http_response => (
     handles   => ['is_success', 'content', 'decoded_content', 'status_line', 'code', 'header', 'as_string'],
 );
 
-sub data {
+sub data { shift->as_hashref(@_) }
+
+sub as_hashref { 
     my ($self) = @_;
     return unless $self->http_response->content; # DELETE return 200 but empty content
     return decode_json($self->http_response->content);
@@ -40,6 +42,8 @@ sub requests_remaining {
 
 1;
 __END__
+
+=encoding utf8
 
 =head1 SYNOPSIS
 

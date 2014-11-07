@@ -76,18 +76,15 @@ sub post {
 sub all_records {
 	my ( $self ) = @_;
 
-	my $response = $self->dme->request('GET',$self->path_records);
+	my $data = $self->dme->request('GET', $self->path_records)->as_hashref;
 
-	my @response_records = @{$response->data};
 	my @records;
-	for (0..$#response_records) {
-		push @records, WWW::DNSMadeEasy::Domain::Record->new({
-			domain => $self,
-			id => $response_records[$_]->{id},
-			response => $response,
-			response_index => $_,
-		});
-	}
+	push @records, WWW::DNSMadeEasy::Domain::Record->new({
+		domain     => $self,
+		id         => $_->{id},
+		as_hashref => $_,
+	}) for @$data;
+	
 	return @records;
 }
 

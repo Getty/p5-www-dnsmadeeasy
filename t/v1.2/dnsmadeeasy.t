@@ -12,14 +12,19 @@ SKIP: {
     my $dme = WWW::DNSMadeEasy->new(
         api_key     => $ENV{WWW_DNSMADEEASY_TEST_APIKEY},
         secret      => $ENV{WWW_DNSMADEEASY_TEST_SECRET},
-        sandbox     => 1,
+        sandbox     => 0,
         api_version => '1.2',
     );
 
     isa_ok($dme,'WWW::DNSMadeEasy');
 
+    #use DDP;
     my @domains = $dme->all_domains;
-    #use DDP; p @domains;
+    #p $domain;
+    my $domain  = $dme->domain('boop.com');
+    #p $domain;
+    my @records = $domain->all_records;
+    #p @records;
 }
     
 
