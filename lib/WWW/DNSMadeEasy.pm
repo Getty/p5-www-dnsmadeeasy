@@ -23,8 +23,7 @@ has sandbox         => (is => 'ro', default => sub { 0 });
 has last_response   => (is => 'rw');
 has _http_agent     => (is => 'lazy');
 has http_agent_name => (is => 'lazy');
-
-has api_version => (
+has api_version     => (
     isa => sub {
         $_ && (
             $_ eq '1.2' or
@@ -67,6 +66,7 @@ sub get_request_headers {
 sub request {
     my ( $self, $method, $path, $data ) = @_;
     my $url = $self->api_endpoint.$path;
+    say "$method $url" if $ENV{WWW_DME_DEBUG};
     my $request = HTTP::Request->new( $method => $url );
     my $headers = $self->get_request_headers;
     $request->header($_ => $headers->{$_}) for (keys %{$headers});
@@ -74,11 +74,11 @@ sub request {
     if (defined $data) {
         $request->header('Content-Type' => 'application/json');
         $request->content(encode_json($data));
-        use DDP; p $data if $ENV{DEBUG};
+        use DDP; p $data if $ENV{WWW_DME_DEBUG};
     }
     my $res = $self->_http_agent->request($request);
     $res = WWW::DNSMadeEasy::Response->new( http_response => $res );
-    say $res->content if $ENV{DEBUG};
+    say $res->content if $ENV{WWW_DME_DEBUG};
     $self->last_response($res);
     die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
     return $res;
@@ -145,7 +145,18 @@ sub all_domains {
 # V2 Managed domains (TODO - move this into a role)
 #
 
-sub domain_path { 'dns/managed/' }
+sub domain_path {'dns/managed/'}
+
+sub create_managed_domain {
+    my ($self, $name) = @_;
+    my $data     = {name => $name};
+    my $response = $self->request(POST => $self->domain_path, $data);
+    return WWW::DNSMadeEasy::ManagedDomain->new(
+        dme        => $self,
+        name       => $response->as_hashref->{name},
+        as_hashref => $response->as_hashref,
+    );
+}
 
 sub get_managed_domain {
     my ($self, $name) = @_;
@@ -157,7 +168,7 @@ sub get_managed_domain {
 
 sub managed_domains {
     my ($self) = @_;
-    my $data   = $self->request('GET' => $self->domain_path)->data->{data};
+    my $data   = $self->request(GET => $self->domain_path)->as_hashref->{data};
 
     my @domains;
     push @domains, WWW::DNSMadeEasy::ManagedDomain->new({
@@ -166,17 +177,6 @@ sub managed_domains {
     }) for @$data;
 
     return @domains;
-}
-
-sub create_managed_domain {
-    my ($self, $name) = @_;
-    my $data     = {name => $name};
-    my $response = $self->request(POST => $self->domain_path, $data)->data;
-    return WWW::DNSMadeEasy::ManagedDomain->new(
-        dme      => $self,
-        name     => $response->{name},
-        response => $response,
-    );
 }
 
 

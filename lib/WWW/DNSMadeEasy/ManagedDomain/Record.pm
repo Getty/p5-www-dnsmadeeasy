@@ -2,36 +2,38 @@ package WWW::DNSMadeEasy::ManagedDomain::Record;
 # ABSTRACT: A managed domain record in the DNSMadeEasy API
 
 use Moo;
+use String::CamelSnakeKebab qw/lower_camel_case/;
 
-has domain   => (is => 'ro', required => 1, handles => {path => 'records_path'});
-has dme      => (is => 'lazy', handles => ['request']);
-has response => (is => 'rw', builder  => 1, lazy => 1);
+has domain     => (is => 'ro', required => 1, handles => {path => 'records_path'});
+has dme        => (is => 'lazy', handles => ['request']);
+has as_hashref => (is => 'rw', builder => 1, lazy => 1, clearer => 1);
+has response   => (is => 'rw');
 
-sub _build_dme      { shift->domain->dme }
-sub _build_response { my $a = $_[0]->dme->request(GET => $_[0]->path)->data ; use DDP; p $a; $a; }
+sub _build_dme        { shift->domain->dme }
+sub _build_as_hashref { shift->response->as_hashref }
 
-sub description   { shift->response->{description}  }
-sub dynamic_dns   { shift->response->{dynamicDns}   }
-sub failed        { shift->response->{failed}       }
-sub failover      { shift->response->{failover}     }
-sub gtd_location  { shift->response->{gtdLocation}  }
-sub hard_link     { shift->response->{hardLink}     }
-sub id            { shift->response->{id}           }
-sub keywords      { shift->response->{keywords}     }
-sub monitor       { shift->response->{monitor}      }
-sub mxLevel       { shift->response->{mxLevel}      }
-sub name          { shift->response->{name}         }
-sub password      { shift->response->{password}     }
-sub port          { shift->response->{port}         }
-sub priority      { shift->response->{priority}     }
-sub redirect_type { shift->response->{redirectType} }
-sub source        { shift->response->{source}       }
-sub source_id     { shift->response->{source_id}    }
-sub title         { shift->response->{title}        }
-sub ttl           { shift->response->{ttl}          }
-sub type          { shift->response->{type}         }
-sub value         { shift->response->{value}        }
-sub weight        { shift->response->{weight}       }
+sub description   { shift->as_hashref->{description}  }
+sub dynamic_dns   { shift->as_hashref->{dynamicDns}   }
+sub failed        { shift->as_hashref->{failed}       }
+sub failover      { shift->as_hashref->{failover}     }
+sub gtd_location  { shift->as_hashref->{gtdLocation}  }
+sub hard_link     { shift->as_hashref->{hardLink}     }
+sub id            { shift->as_hashref->{id}           }
+sub keywords      { shift->as_hashref->{keywords}     }
+sub monitor       { shift->as_hashref->{monitor}      }
+sub mxLevel       { shift->as_hashref->{mxLevel}      }
+sub name          { shift->as_hashref->{name}         }
+sub password      { shift->as_hashref->{password}     }
+sub port          { shift->as_hashref->{port}         }
+sub priority      { shift->as_hashref->{priority}     }
+sub redirect_type { shift->as_hashref->{redirectType} }
+sub source        { shift->as_hashref->{source}       }
+sub source_id     { shift->as_hashref->{source_id}    }
+sub title         { shift->as_hashref->{title}        }
+sub ttl           { shift->as_hashref->{ttl}          }
+sub type          { shift->as_hashref->{type}         }
+sub value         { shift->as_hashref->{value}        }
+sub weight        { shift->as_hashref->{weight}       }
 
 sub delete {
     my ($self) = @_;
@@ -39,9 +41,31 @@ sub delete {
 }
 
 sub update {
-	my ($self, $data) = @_;
-	my $res = $self->request(PUT => $self->path . $self->id, $data)->data;
-    $self->response($res);
+	my ($self, %data) = @_;
+
+    my %req;
+    for my $old (keys %data) {
+        my $new = lower_camel_case($old);
+        $req{$new} = $data{$old};
+    }
+
+    $req{id}   //= $self->id;
+    $req{name} //= $self->name;
+
+    my $id   = $self->id;
+    my $type = $self->type;
+    my $name = $self->name;
+    $self->clear_as_hashref;
+	$self->request(PUT => $self->path . $id, \%req);
+
+    # GRR DME doesn't return the updasted record and there is no way to get a
+    # single record by id
+    $name = $req{name} if $req{name};
+    my @records = $self->domain->records(type => $type, name => $name);
+    for my $record (@records) {
+        next unless $record->id eq $id;
+        $self->as_hashref($record->as_hashref);
+    }
 }
 
 1;
@@ -53,6 +77,8 @@ sub update {
 =method delete()
 
 =method update(%data)
+
+Can't update id, name, type, or gtd_location.
 
 =method response
 

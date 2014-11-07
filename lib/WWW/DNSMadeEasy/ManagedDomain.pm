@@ -14,24 +14,23 @@ has dme => (
     }
 );
 
-has name     => (is => 'ro', required => 1);
-has response => (is => 'rw', builder  => 1, lazy => 1);
+has name       => (is => 'ro', required => 1);
+has as_hashref => (is => 'rw', builder  => 1, lazy => 1, clearer => 1);
+has response   => (is => 'rw', builder  => 1, lazy => 1, clearer => 1);
 
-sub _build_response {
-    my ($self) = @_;
-    $self->request(GET => $self->path . 'id/' . $self->name)->data;
-}
+sub _build_as_hashref { shift->response->as_hashref }
+sub _build_response { $_[0]->request(GET => $_[0]->path . 'id/' . $_[0]->name) }
 
-sub active_third_parties  { shift->response->{activeThirdParties}  }
-sub created               { shift->response->{created}             }
-sub delegate_name_servers { shift->response->{delegateNameServers} }
-sub folder_id             { shift->response->{folderId}            }
-sub gtd_enabled           { shift->response->{gtdEnabled}          }
-sub id                    { shift->response->{id}                  }
-sub name_servers          { shift->response->{nameServers}         }
-sub pending_action_id     { shift->response->{pendingActionId}     }
-sub process_multi         { shift->response->{processMulti}        }
-sub updated               { shift->response->{updated}             }
+sub active_third_parties  { shift->as_hashref->{activeThirdParties}  }
+sub created               { shift->as_hashref->{created}             }
+sub delegate_name_servers { shift->as_hashref->{delegateNameServers} }
+sub folder_id             { shift->as_hashref->{folderId}            }
+sub gtd_enabled           { shift->as_hashref->{gtdEnabled}          }
+sub id                    { shift->as_hashref->{id}                  }
+sub name_servers          { shift->as_hashref->{nameServers}         }
+sub pending_action_id     { shift->as_hashref->{pendingActionId}     }
+sub process_multi         { shift->as_hashref->{processMulti}        }
+sub updated               { shift->as_hashref->{updated}             }
 
 sub delete {
     my ($self) = @_;
@@ -40,25 +39,29 @@ sub delete {
 
 sub update {
     my ($self, $data) = @_;
-    my $res = $self->request(PUT => $self->path . $self->id, $data)->data;
+    $self->clear_as_hashref;
+    my $res = $self->request(PUT => $self->path . $self->id, $data);
     $self->response($res);
 }
 
 sub wait_for_delete {
     my ($self) = @_;
     while (1) {
-        eval { $self->response($self->_build_response) };
-        last if $@ && $@ =~ /404/;
-        sleep 5;
+        $self->clear_response;
+        $self->clear_as_hashref;
+        eval { $self->response() };
+        last if $@ && $@ =~ /(404|400)/;
+        sleep 10;
     }
 }
 
 sub wait_for_pending_action {
     my ($self) = @_;
     while (1) {
-        $self->response($self->_build_response);
-        last unless $self->pending_action_id;
-        sleep 5;
+        $self->clear_response;
+        $self->clear_as_hashref;
+        last if $self->pending_action_id == 0;
+        sleep 10;
     }
 }
 
@@ -77,22 +80,30 @@ sub create_record {
         $req{$new} = $data{$old};
     }
 
-	my $response = $self->request(POST => $self->records_path, \%req)->data;
 	return WWW::DNSMadeEasy::ManagedDomain::Record->new(
-        response => $response,
+        response => $self->request(POST => $self->records_path, \%req),
         domain   => $self,
     );
 }
 
-# TODO - do multiple gets when max number of records is reached
+# TODO 
+# - do multiple gets when max number of records is reached
+# - save the request as part of the Record obj
 sub records {
-    my ($self) = @_;
-    my $data   = $self->request(GET => $self->records_path)->data->{data};
+    my ($self, %args) = @_;
+
+    my $path = $self->records_path;
+    $path .= '?type='       . $args{type} if $args{type} && !$args{name};
+    $path .= '?recordName=' . $args{name} if $args{name} && !$args{type};
+    $path .= '?recordName=' . $args{name} .
+             '&type='       . $args{type} if $args{name} &&  $args{type};
+
+    my $arrayref = $self->request(GET => $path)->data->{data};
 
     my @records;
-    for my $response (@$data) {
+    for my $hashref (@$arrayref) {
         push @records, WWW::DNSMadeEasy::ManagedDomain::Record
-            ->new(response => $response, domain => $self);
+            ->new(as_hashref => $hashref, domain => $self);
     }
 
     return @records;
@@ -108,13 +119,21 @@ sub records {
 
 =method update(%data)
 
-=method records()
+=method records(%data)
+
+    my @records = $domain->records();                # Returns all records
+    my @records = $domain->records(type => 'CNAME'); # Returns all CNAME records
+    my @records = $domain->records(name => 'www');   # Returns all wwww records
 
 Returns a list of L<WWW::DNSMadeEasy::ManagedDomain::Record> objects.
 
 =method response
 
-Returns this object as a hashreference.
+Returns the response for this object
+
+=method as_hashref
+
+Returns json response data as a hashref
 
 =head1 MANAGED DOMAIN ATTRIBUTES
 
