@@ -21,6 +21,7 @@ sub gtd_location  { shift->as_hashref->{gtdLocation}  }
 sub hard_link     { shift->as_hashref->{hardLink}     }
 sub id            { shift->as_hashref->{id}           }
 sub keywords      { shift->as_hashref->{keywords}     }
+sub monitor       { shift->as_hashref->{monitor}      }
 sub mxLevel       { shift->as_hashref->{mxLevel}      }
 sub name          { shift->as_hashref->{name}         }
 sub password      { shift->as_hashref->{password}     }
@@ -70,7 +71,7 @@ sub update {
 
 sub monitor_path { 'monitor/' . shift->id  }
 
-sub monitor {
+sub get_monitor {
     my ($self) = @_;
     return WWW::DNSMadeEasy::Monitor->new(
         response => $self->request(GET => $self->monitor_path),
@@ -107,9 +108,13 @@ sub create_monitor {
 
 Can't update id, name, type, or gtd_location.
 
-=method response
+=method response()
 
 Returns this object as a hashreference.
+
+=method get_monitor()
+
+Returns a L<WWW::DNSMadeEasy::Monitor> object which deals with dns failover and system monitoring.
 
 =head1 RECORD ATTRIBUTES
 
