@@ -18,22 +18,22 @@ SKIP: {
 
     isa_ok($dme,'WWW::DNSMadeEasy');
 
-    #subtest setup => sub {
-    #    my @domains = $dme->managed_domains;
-    #    $_->delete          for @domains;
-    #    $_->wait_for_delete for @domains;
-    #    pass 'setup complete';
-    #};
+    subtest setup => sub {
+        my @domains = $dme->managed_domains;
+        $_->delete          for @domains;
+        $_->wait_for_delete for @domains;
+        pass 'setup complete';
+    };
 
-    #subtest 'managed domains' => sub {
-    #    my @domains = $dme->managed_domains;
-    #    is scalar @domains, 0, "no managed domains";
+    subtest 'managed domains' => sub {
+        my @domains = $dme->managed_domains;
+        is scalar @domains, 0, "no managed domains";
 
-    #    my $domain  = $dme->create_managed_domain('boop.com');
-    #    @domains = $dme->managed_domains;
-    #    $_->wait_for_pending_action for @domains;
-    #    is scalar @domains, 1, "created a domain";
-    #};
+        my $domain  = $dme->create_managed_domain('boop.com');
+        @domains = $dme->managed_domains;
+        $_->wait_for_pending_action for @domains;
+        is scalar @domains, 1, "created a domain";
+    };
 
     my $record1;
     my $record2;
