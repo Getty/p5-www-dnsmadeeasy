@@ -290,6 +290,17 @@ Return value: Array of L<WWW::DNSMadeEasy::Domain>
 
 Returns an array of L<WWW::DNSMadeEasy::Domain> objects of all domains listed on this account.
 
+=head1 SEE ALSO
+
+    DNSMadeEasy REST API landing page
+    http://www.dnsmadeeasy.com/services/rest-api/
+
+    DNSMadeEasy documentation for v2.0
+    http://www.dnsmadeeasy.com/wp-content/uploads/2014/07/API-Docv2.pdf
+
+    DNSMadeEasy documentation for v1.2
+    http://www.dnsmadeeasy.com/wp-content/themes/appdev/pdf/API-Documentation-DM_20110921.pdf
+
 =head1 SUPPORT
 
 IRC
