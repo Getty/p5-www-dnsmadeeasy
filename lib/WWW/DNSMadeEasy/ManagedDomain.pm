@@ -92,11 +92,12 @@ sub create_record {
 sub records {
     my ($self, %args) = @_;
 
+    # TODO should switch to URI->query_form() but that requires changing DME->request()
     my $path = $self->records_path;
-    $path .= '?type='       . $args{type} if $args{type} && !$args{name};
-    $path .= '?recordName=' . $args{name} if $args{name} && !$args{type};
+    $path .= '?type='       . $args{type} if defined $args{type} && !defined $args{name};
+    $path .= '?recordName=' . $args{name} if defined $args{name} && !defined $args{type};
     $path .= '?recordName=' . $args{name} .
-             '&type='       . $args{type} if $args{name} &&  $args{type};
+             '&type='       . $args{type} if defined $args{name} &&  defined $args{type};
 
     my $arrayref = $self->request(GET => $path)->data->{data};
 
