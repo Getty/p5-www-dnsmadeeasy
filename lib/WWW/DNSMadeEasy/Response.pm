@@ -10,13 +10,9 @@ has http_response => (
     handles   => ['is_success', 'content', 'decoded_content', 'status_line', 'code', 'header', 'as_string'],
 );
 
-has data => (
-    is => 'ro',
-    lazy => 1,
-    builder => 1,
-);
+sub data { shift->as_hashref(@_) }
 
-sub _build_as_hashref {
+sub as_hashref { 
     my ($self) = @_;
     return unless $self->http_response->content; # DELETE return 200 but empty content
     return decode_json($self->http_response->content);
@@ -30,22 +26,24 @@ sub error {
 }
 
 sub request_id {
-  my ( $self ) = @_;
-  $self->header('x-dnsme-requestId');
+    my ( $self ) = @_;
+    $self->header('x-dnsme-requestId');
 }
 
 sub request_limit {
-  my ( $self ) = @_;
-  $self->header('x-dnsme-requestLimit');
+    my ( $self ) = @_;
+    $self->header('x-dnsme-requestLimit');
 }
 
 sub requests_remaining {
-  my ( $self ) = @_;
-  $self->header('x-dnsme-requestsRemaining');
+    my ( $self ) = @_;
+    $self->header('x-dnsme-requestsRemaining');
 }
 
 1;
 __END__
+
+=encoding utf8
 
 =head1 SYNOPSIS
 
