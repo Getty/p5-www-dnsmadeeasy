@@ -3,14 +3,14 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::LoadAllModules;
 
 BEGIN {
     use_ok('WWW::DME');
-    use_ok('WWW::DNSMadeEasy');
-    use_ok('WWW::DNSMadeEasy::Domain');
-    use_ok('WWW::DNSMadeEasy::Domain::Record');
-    use_ok('WWW::DNSMadeEasy::ManagedDomain');
-    use_ok('WWW::DNSMadeEasy::ManagedDomain::Record');
+    all_uses_ok(
+        search_path => 'WWW::DNSMadeEasy',
+        lib         => ['lib'],
+    );
 }
 
 done_testing;
