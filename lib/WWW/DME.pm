@@ -1,6 +1,6 @@
 package WWW::DME;
 # ABSTRACT: Shorter package name for accessing DNSMadeEasy API
-
+our $VERSION = '0.101';
 use Moo;
 extends 'WWW::DNSMadeEasy';
 

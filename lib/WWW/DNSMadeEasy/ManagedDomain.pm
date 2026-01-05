@@ -1,6 +1,6 @@
 package WWW::DNSMadeEasy::ManagedDomain;
 # ABSTRACT: A managed domain in the DNSMadeEasy API
-
+our $VERSION = '0.101';
 use Moo;
 use String::CamelSnakeKebab qw/lower_camel_case/;
 use WWW::DNSMadeEasy::ManagedDomain::Record;

@@ -1,6 +1,6 @@
 package WWW::DNSMadeEasy::Domain::Record;
 # ABSTRACT: A domain record in the DNSMadeEasy API
-
+our $VERSION = '0.101';
 use Moo;
 use Carp;
 

@@ -1,6 +1,6 @@
 package WWW::DNSMadeEasy;
 # ABSTRACT: Accessing DNSMadeEasy API
-
+our $VERSION = '0.101';
 use feature qw/say/;
 
 use Moo;

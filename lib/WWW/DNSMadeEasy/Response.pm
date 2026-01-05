@@ -1,6 +1,6 @@
 package WWW::DNSMadeEasy::Response;
 # ABSTRACT: DNSMadeEasy Response
-
+our $VERSION = '0.101';
 use Moo;
 use JSON;
 

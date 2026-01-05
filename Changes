@@ -1,5 +1,7 @@
 Revision history for WWW-DNSMadeEasy
 
+{{$NEXT}}
+
 0.100     2026-01-05 19:23:57Z
   - Switch default branch from master to main
   - Switch to HTTPS for API endpoints

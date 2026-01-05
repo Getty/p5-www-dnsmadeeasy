@@ -1,6 +1,6 @@
 package WWW::DNSMadeEasy::Monitor;
 # ABSTRACT: DNS Failover and System Monitoring configuration
-
+our $VERSION = '0.101';
 use Moo;
 use String::CamelSnakeKebab qw/lower_camel_case/;
 
