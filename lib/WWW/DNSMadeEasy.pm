@@ -15,8 +15,6 @@ use WWW::DNSMadeEasy::Domain;
 use WWW::DNSMadeEasy::ManagedDomain;
 use WWW::DNSMadeEasy::Response;
 
-our $VERSION ||= '0.0development';
-
 has api_key         => (is => 'ro', required => 1);
 has secret          => (is => 'ro', required => 1);
 has sandbox         => (is => 'ro', default => sub { 0 });
