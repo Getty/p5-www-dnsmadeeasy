@@ -31,7 +31,7 @@ has api_version     => (
         )
     },
     is => 'ro',
-    default => sub { '1.2' },
+    default => sub { '2.0' },
 );
 
 sub _build__http_agent {
@@ -46,9 +46,9 @@ sub _build_http_agent_name { __PACKAGE__.'/'.$VERSION }
 sub api_endpoint {
     my ( $self ) = @_;
     if ($self->sandbox) {
-        return 'http://api.sandbox.dnsmadeeasy.com/V'.$self->api_version.'/';
+        return 'https://api.sandbox.dnsmadeeasy.com/V'.$self->api_version.'/';
     } else {
-        return 'http://api.dnsmadeeasy.com/V'.$self->api_version.'/';
+        return 'https://api.dnsmadeeasy.com/V'.$self->api_version.'/';
     }
 }
 
