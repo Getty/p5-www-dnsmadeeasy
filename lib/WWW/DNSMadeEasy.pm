@@ -192,7 +192,7 @@ sub managed_domains {
         api_key     => '1c1a3c91-4770-4ce7-96f4-54c0eb0e457a',
         secret      => 'c9b5625f-9834-4ff8-baba-4ed5f32cae55',
         sandbox     => 1,     # defaults to 0
-        api_version => '2.0', # defaults to '1.0'
+        api_version => '2.0', # defaults to '2.0'
     });
     my @managed_domains = $dme->managed_domains;
     my $managed_domain  = $dme->get_managed_domain('example.com');
@@ -244,6 +244,10 @@ The secret can be found on the same page as the API key.
 
 If set to true, this will activate the usage of the sandbox, instead of the live system.
 
+=attr api_version
+
+The API version to use. Can be '1.2' or '2.0'. Defaults to '2.0'.
+
 =attr http_agent_name
 
 Here you can set a different http useragent for the requests, it defaults to the package name including the distribution version.
@@ -256,11 +260,11 @@ Creates the domain $name and returns a L<WWW::DNSMadeEasy::ManagedDomain> object
 
 =method get_managed_domain($name)
 
-Searches for a domain with the name $name and returns a L<WWWW::DNSMadeEasy::ManagedDomain> object.
+Searches for a domain with the name $name and returns a L<WWW::DNSMadeEasy::ManagedDomain> object.
 
 =method managed_domains()
 
-Returns a list of L<WWWW::DNSMadeEasy::ManagedDomain> objects representing all domains.
+Returns a list of L<WWW::DNSMadeEasy::ManagedDomain> objects representing all domains.
 
 =head1 METHODS FOR API V1
 
