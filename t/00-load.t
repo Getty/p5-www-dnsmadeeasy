@@ -11,6 +11,8 @@ BEGIN {
     use_ok('WWW::DNSMadeEasy::Domain::Record');
     use_ok('WWW::DNSMadeEasy::ManagedDomain');
     use_ok('WWW::DNSMadeEasy::ManagedDomain::Record');
+    use_ok('WWW::DNSMadeEasy::Monitor');
+    use_ok('WWW::DNSMadeEasy::Response');
 }
 
 done_testing;
