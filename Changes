@@ -1,6 +1,11 @@
 Revision history for WWW-DNSMadeEasy
 
 {{$NEXT}}
+  - Added README.md with comprehensive usage examples
+  - Fixed api_version default in documentation (2.0 not 1.0)
+  - Fixed POD typos
+  - Added api_version attribute documentation
+  - Added Monitor and Response to load tests
 
 0.100     2026-01-05 19:23:57Z
   - Switch default branch from master to main
