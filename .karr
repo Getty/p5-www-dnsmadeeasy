@@ -1,0 +1,7 @@
+claude: true
+prompt: |
+  You are working the WWW::DNSMadeEasy karr board (a Moo client for the DNSMadeEasy REST
+  API). Pick the next actionable ticket, implement it per the repo's conventions, and run
+  `prove -lr t/` (the -r is required — t/v1.2 and t/v2.0 are subdirs). Delegate
+  behaviour-relevant code to www-dnsmadeeasy-worker and fixture-backed tests to
+  www-dnsmadeeasy-test-writer as the rules file directs. Never run `dzil release`.
