@@ -2,6 +2,7 @@ package WWW::DNSMadeEasy::ManagedDomain;
 # ABSTRACT: A managed domain in the DNSMadeEasy API
 our $VERSION = '0.101';
 use Moo;
+use URI;
 use String::CamelSnakeKebab qw/lower_camel_case/;
 use WWW::DNSMadeEasy::ManagedDomain::Record;
 
@@ -91,24 +92,28 @@ sub create_record {
 sub records {
     my ($self, %args) = @_;
 
-    # TODO should switch to URI->query_form() but that requires changing DME->request()
-    my $path = $self->records_path;
-    $path .= '?type='       . $args{type} if defined $args{type} && !defined $args{name};
-    $path .= '?recordName=' . $args{name} if defined $args{name} && !defined $args{type};
-    $path .= '?recordName=' . $args{name} .
-             '&type='       . $args{type} if defined $args{name} &&  defined $args{type};
+    # Deterministic (ordered) query params: DME v2 uses recordName / type, plus
+    # page for pagination below. URI->query_form does the assembly and encoding;
+    # a relative URI stringifies straight into request()'s api_endpoint.$path.
+    my @query;
+    push @query, ( recordName => $args{name} ) if defined $args{name};
+    push @query, ( type       => $args{type} ) if defined $args{type};
+
+    my $uri = URI->new($self->records_path);
+    $uri->query_form(@query) if @query;
 
     # The record list is paginated: the first GET (no page param) returns page 1
     # and reports the current page and totalPages. Follow every further page,
     # otherwise records past the server's page size are silently lost.
-    my $data = $self->request(GET => $path)->data;
+    my $data = $self->request(GET => $uri)->data;
     my @arrayref = @{$data->{data}};
 
     my $page        = $data->{page}       // 1;
     my $total_pages = $data->{totalPages} // 1;
     for my $next ($page + 1 .. $total_pages) {
-        my $page_path = $path . ($path =~ /\?/ ? '&' : '?') . 'page=' . $next;
-        push @arrayref, @{$self->request(GET => $page_path)->data->{data}};
+        my $page_uri = URI->new($self->records_path);
+        $page_uri->query_form(@query, page => $next);
+        push @arrayref, @{$self->request(GET => $page_uri)->data->{data}};
     }
 
     my @records;

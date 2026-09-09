@@ -8,16 +8,24 @@ sub new {
   my ($class, %args) = @_;
   return bless {
     fixtures_dir => $args{fixtures_dir} // 't/fixtures',
+    requests     => [],
   }, $class;
 }
 
 sub agent { }
+
+# Every URI seen, newest last — lets a test assert what was actually put on the
+# wire (e.g. the query string built by ManagedDomain::records).
+sub requests { $_[0]->{requests} }
+sub last_uri { $_[0]->{requests}[-1] }
 
 sub request {
   my ($self, $http_request) = @_;
   my $method = $http_request->method;
   my $uri = $http_request->uri;
   my $path = $uri->path;
+
+  push @{$self->{requests}}, $uri;
 
   my $fixture_file;
 

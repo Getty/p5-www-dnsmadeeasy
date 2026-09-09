@@ -6,6 +6,7 @@ requires 'DateTime';
 requires 'DateTime::Format::HTTP';
 requires 'Data::Printer';
 requires 'String::CamelSnakeKebab';
+requires 'URI';
 
 on test => sub {
   requires 'Test::More', '0.96';

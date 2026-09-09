@@ -8,6 +8,8 @@ Revision history for WWW-DNSMadeEasy
   - Fixed POD typos
   - Added api_version attribute documentation
   - Added Monitor and Response to load tests
+  - Build the ManagedDomain records() list query with URI->query_form
+    instead of hand-concatenating type/recordName/page (no wire change)
 
 0.100     2026-01-05 19:23:57Z
   - Switch default branch from master to main
