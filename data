@@ -1,0 +1,14 @@
+---
+class: standard
+created: 2026-09-09T07:48:10Z
+id: 4
+priority: low
+status: backlog
+tags:
+- docs
+- skill
+title: 'www-dnsmadeeasy-core skill: records() query_form note is stale'
+updated: 2026-09-09T07:48:10Z
+---
+
+The www-dnsmadeeasy-core skill still states the ManagedDomain records() query should move to URI query_form and that this needs a request() signature change. Ticket 3 implemented query_form records()-locally by passing a relative URI (which stringifies into request via overload) with NO request() change. Update the skill note: query_form is now done and needed no request() change. Documentation drift only. Found while completing ticket 3. The skill file may be hardlinked, so edit with manage-skills care.
