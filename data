@@ -1,0 +1,18 @@
+---
+class: standard
+completed: 2026-09-09T07:48:06Z
+created: 2026-08-31T04:29:25Z
+id: 3
+priority: low
+started: 2026-09-09T07:40:08Z
+status: done
+tags:
+- v2
+- cleanup
+title: Build ManagedDomain::records query with URI->query_form
+updated: 2026-09-09T07:48:06Z
+---
+
+ManagedDomain.pm records() builds the ?type=/?recordName= query string by hand (TODO at ~line 95). Switching to URI->query_form() is cleaner but requires changing DME->request() to accept/pass a URI. Coupled change.
+
+2026-09-09 07:47 Done. records() now builds its list query with URI query_form (ordered deterministic params: recordName then type, plus page per paginated request) on a relative URI that stringifies into request(). request() itself is unchanged (URI stringifies via overload), so no chokepoint risk and existing string-path callers are unaffected. Pagination from ticket 2 preserved. Wire-equivalent for name-only, type-only, combined and combined-plus-page. URI added to cpanfile. MockUA gained a request recorder; new offline test 14-records-query-form.t pins the exact wire query and the name to recordName mapping, non-vacuous. HMAC tripwire 05 green. prove -lr t and dzil test both PASS with 59 tests. Commit 97b72b6.
