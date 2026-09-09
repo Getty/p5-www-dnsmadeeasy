@@ -1,6 +1,8 @@
 Revision history for WWW-DNSMadeEasy
 
 {{$NEXT}}
+  - Fixed ManagedDomain records() silently truncating at the server's page
+    size; it now follows v2 pagination and returns records from all pages
   - Added README.md with comprehensive usage examples
   - Fixed api_version default in documentation (2.0 not 1.0)
   - Fixed POD typos

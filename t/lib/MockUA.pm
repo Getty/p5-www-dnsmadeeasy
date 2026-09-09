@@ -31,8 +31,16 @@ sub request {
       $fixture_file = 'v2-record-updated.json';
     }
   } elsif ($path =~ m{^/V2\.0/dns/managed/(\d+)/records/?}) {
+    my $domain_id = $1;
     if ($method eq 'POST') {
       $fixture_file = 'v2-create-record.json';
+    } elsif ($domain_id eq '200002') {
+      # Paginated record list (regression fixture for records() pagination):
+      # ?page=2 is routed to the second page, the first GET to page 1.
+      my $query = $uri->query // '';
+      $fixture_file = $query =~ /(?:\A|&)page=2(?:&|\z)/
+        ? 'v2-records-page2.json'
+        : 'v2-records-page1.json';
     } else {
       $fixture_file = 'v2-records.json';
     }

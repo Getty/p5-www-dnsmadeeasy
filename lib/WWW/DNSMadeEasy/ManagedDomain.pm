@@ -86,8 +86,7 @@ sub create_record {
     );
 }
 
-# TODO 
-# - do multiple gets when max number of records is reached
+# TODO
 # - save the request as part of the Record obj
 sub records {
     my ($self, %args) = @_;
@@ -99,10 +98,21 @@ sub records {
     $path .= '?recordName=' . $args{name} .
              '&type='       . $args{type} if defined $args{name} &&  defined $args{type};
 
-    my $arrayref = $self->request(GET => $path)->data->{data};
+    # The record list is paginated: the first GET (no page param) returns page 1
+    # and reports the current page and totalPages. Follow every further page,
+    # otherwise records past the server's page size are silently lost.
+    my $data = $self->request(GET => $path)->data;
+    my @arrayref = @{$data->{data}};
+
+    my $page        = $data->{page}       // 1;
+    my $total_pages = $data->{totalPages} // 1;
+    for my $next ($page + 1 .. $total_pages) {
+        my $page_path = $path . ($path =~ /\?/ ? '&' : '?') . 'page=' . $next;
+        push @arrayref, @{$self->request(GET => $page_path)->data->{data}};
+    }
 
     my @records;
-    for my $hashref (@$arrayref) {
+    for my $hashref (@arrayref) {
         push @records, WWW::DNSMadeEasy::ManagedDomain::Record
             ->new(as_hashref => $hashref, domain => $self);
     }

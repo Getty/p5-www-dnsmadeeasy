@@ -1,0 +1,4 @@
+{"data": [
+  {"id": 3004, "name": "d", "type": "A", "value": "10.0.0.4", "ttl": 300, "gtdLocation": "DEFAULT", "source": 1, "sourceId": 200002, "dynamicDns": false, "failed": false, "failover": false, "monitor": false, "hardLink": false},
+  {"id": 3005, "name": "e", "type": "A", "value": "10.0.0.5", "ttl": 300, "gtdLocation": "DEFAULT", "source": 1, "sourceId": 200002, "dynamicDns": false, "failed": false, "failover": false, "monitor": false, "hardLink": false}
+], "page": 2, "totalPages": 2, "totalRecords": 5}
