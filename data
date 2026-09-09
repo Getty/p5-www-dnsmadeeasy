@@ -1,0 +1,18 @@
+---
+class: standard
+completed: 2026-09-09T07:38:44Z
+created: 2026-08-31T04:29:21Z
+id: 2
+priority: medium
+started: 2026-09-09T07:30:11Z
+status: done
+tags:
+- v2
+- bug
+title: Paginate ManagedDomain::records for large record sets
+updated: 2026-09-09T07:38:44Z
+---
+
+ManagedDomain.pm records() has a TODO: do multiple GETs when the max number of records is reached (the API paginates), and save the request as part of the Record obj. Currently a single GET can silently truncate results.
+
+2026-09-09 07:38 Done. records() now follows v2 pagination: reads the server-reported page and totalPages, fetches every remaining page appending a page parameter, and aggregates all records. Falls back to single page when pagination fields are absent, so existing callers are unchanged. The type and name query builder is untouched (the query_form cleanup stays ticket 3). Offline regression test 13-records-pagination.t with two-page MockUA fixtures asserts all 5 records across both pages are returned. HMAC tripwire 05 stays green. prove -lr t and dzil test both PASS with 53 tests. Commit f5ebaed. The secondary TODO save the request in the Record obj was left open (vague, not the truncation bug).
