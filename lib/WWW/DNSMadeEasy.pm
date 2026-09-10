@@ -4,6 +4,8 @@ our $VERSION = '0.101';
 use feature qw/say/;
 
 use Moo;
+with 'WWW::DNSMadeEasy::Role::Domains',
+     'WWW::DNSMadeEasy::Role::ManagedDomains';
 use DateTime;
 use DateTime::Format::HTTP;
 use Digest::HMAC_SHA1 qw(hmac_sha1 hmac_sha1_hex);
@@ -11,8 +13,6 @@ use LWP::UserAgent;
 use HTTP::Request;
 use JSON;
 
-use WWW::DNSMadeEasy::Domain;
-use WWW::DNSMadeEasy::ManagedDomain;
 use WWW::DNSMadeEasy::Response;
 
 has api_key         => (is => 'ro', required => 1);
@@ -96,87 +96,6 @@ sub request_limit {
     my ( $self ) = @_;
     return $self->last_response ? $self->last_response->request_limit : undef;
 }
-
-#
-# V1 DOMAINS (TODO - move this into a role)
-#
-
-sub path_domains { 'domains' }
-
-sub create_domain {
-    my ( $self, $domain_name ) = @_;
-
-    my $params = { dme => $self };
-    if (ref $domain_name eq 'HASH') {
-        $params->{obj} = $domain_name;
-        $params->{name} = $domain_name->{name}; # name is required
-    } else {
-        $params->{name} = $domain_name;
-    }
-
-    return WWW::DNSMadeEasy::Domain->create($params);
-}
-
-sub domain {
-    my ( $self, $domain_name ) = @_;
-    return WWW::DNSMadeEasy::Domain->new({
-        name => $domain_name,
-        dme => $self,
-    });
-}
-
-sub all_domains {
-    my ( $self ) = @_;
-    my $data = $self->request('GET',$self->path_domains)->data;
-    return if !$data->{list};
-    my @domains;
-    for (@{$data->{list}}) {
-        push @domains, WWW::DNSMadeEasy::Domain->new({
-            dme => $self,
-            name => $_,
-        });
-    }
-    return @domains;
-}
-
-#
-# V2 Managed domains (TODO - move this into a role)
-#
-
-sub domain_path {'dns/managed/'}
-
-sub create_managed_domain {
-    my ($self, $name) = @_;
-    my $data     = {name => $name};
-    my $response = $self->request(POST => $self->domain_path, $data);
-    return WWW::DNSMadeEasy::ManagedDomain->new(
-        dme        => $self,
-        name       => $response->as_hashref->{name},
-        as_hashref => $response->as_hashref,
-    );
-}
-
-sub get_managed_domain {
-    my ($self, $name) = @_;
-    return WWW::DNSMadeEasy::ManagedDomain->new(
-        name => $name,
-        dme  => $self,
-    );
-}
-
-sub managed_domains {
-    my ($self) = @_;
-    my $data   = $self->request(GET => $self->domain_path)->as_hashref->{data};
-
-    my @domains;
-    push @domains, WWW::DNSMadeEasy::ManagedDomain->new({
-        dme  => $self,
-        name => $_->{name},
-    }) for @$data;
-
-    return @domains;
-}
-
 
 1;
 

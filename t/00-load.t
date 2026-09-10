@@ -13,6 +13,8 @@ BEGIN {
     use_ok('WWW::DNSMadeEasy::ManagedDomain::Record');
     use_ok('WWW::DNSMadeEasy::Monitor');
     use_ok('WWW::DNSMadeEasy::Response');
+    use_ok('WWW::DNSMadeEasy::Role::Domains');
+    use_ok('WWW::DNSMadeEasy::Role::ManagedDomains');
 }
 
 done_testing;
