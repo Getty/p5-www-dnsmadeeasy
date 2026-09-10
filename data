@@ -1,0 +1,20 @@
+---
+claimed_at: 2026-09-10T03:52:06Z
+claimed_by: worker-c
+class: standard
+completed: 2026-09-10T03:52:06Z
+created: 2026-08-31T04:29:09Z
+id: 1
+priority: low
+started: 2026-09-10T03:47:52Z
+status: done
+tags:
+- refactor
+- architecture
+title: Move V1/V2 domain methods into roles
+updated: 2026-09-10T03:52:06Z
+---
+
+WWW::DNSMadeEasy.pm carries two "TODO - move this into a role" markers (lines ~101 V1 domains, ~143 V2 managed domains). The version-specific entry methods live directly on the client; extracting each version into its own Moo::Role would clean the split. Public-surface change — do not do casually.
+
+Done in beb9e41. Extracted V1/V2 entry methods into WWW::DNSMadeEasy::Role::Domains (v1.2) and ::Role::ManagedDomains (v2.0), consumed via with. Behaviour-preserving: bodies verbatim, public API unchanged on WWW::DNSMadeEasy + WWW::DME alias, POD kept in main module. Added t/13-roles.t; prove -lr t/ 43 PASS, dzil test 53 PASS.
