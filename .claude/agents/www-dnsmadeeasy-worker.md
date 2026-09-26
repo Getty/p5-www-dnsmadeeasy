@@ -2,7 +2,6 @@
 name: www-dnsmadeeasy-worker
 description: "Default WWW::DNSMadeEasy worker — implement, refactor and debug the Moo API client (both API v1.2 and v2.0 trees, request/HMAC layer, resource classes). Pre-loaded with all distribution conventions and repo specifics. Not for pre-release CPAN audit (use www-dnsmadeeasy-release-checker) or new fixture-based tests (use www-dnsmadeeasy-test-writer). Leaves a commit-ready tree; never commits — commits belong to www-dnsmadeeasy-release-manager."
 model: inherit
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep
 briefing:
   skills:
     - www-dnsmadeeasy-core

@@ -2,7 +2,6 @@
 name: www-dnsmadeeasy-test-writer
 description: "Write WWW::DNSMadeEasy tests against the MockUA fixture harness (offline by default). Use for test additions, regression scaffolding, and debugging via the fixture-interception mechanism. Hard rule: no test may hit the real DNSMadeEasy API — everything runs through MockUA + t/fixtures/*.json."
 model: sonnet
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep
 briefing:
   skills:
     - www-dnsmadeeasy-core
