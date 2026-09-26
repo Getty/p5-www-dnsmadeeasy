@@ -26,7 +26,7 @@ principle and lanes are in `.claude/rules/www-dnsmadeeasy-rules.md`.
 |---|---|
 | Implement / refactor / debug client code | `www-dnsmadeeasy-worker` (default) |
 | Write/extend fixture-backed tests | `www-dnsmadeeasy-test-writer` |
-| Pre-release CPAN audit | `www-dnsmadeeasy-release-checker` |
+| Pre-release CPAN audit | `www-dnsmadeeasy-release-manager` |
 
 The agents carry their conventions via `briefing.skills` (see `.claude/agents/`); the
 main agent delegates rather than loading them. Skill sources live under `.claude/skills/`

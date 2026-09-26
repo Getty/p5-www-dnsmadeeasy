@@ -7,7 +7,7 @@ briefing:
   skills:
     - www-dnsmadeeasy-core
     - getty-perl-core
-    - kanban-issues-karr-cli
+    - kanban-issues-karr-ticket
 ---
 
 You are the www-dnsmadeeasy-test-writer.

@@ -27,7 +27,7 @@ force-loaded via `briefing.skills` — this file is for the orchestrating agent.
 
 - **You can spawn subagents** (orchestrating main agent): Do NOT touch behaviour-relevant
   code yourself — delegate. Your lane: coordinate, inspect, plan, review diffs, run
-  tests, manage git, edit non-behavioural docs. Why: only the `www-dnsmadeeasy-*` agents
+  tests, edit non-behavioural docs. Why: only the `www-dnsmadeeasy-*` agents
   get their skills force-loaded via `briefing.skills`; you get no briefing and would
   touch internals with too little context. Lanes:
 
@@ -35,7 +35,7 @@ force-loaded via `briefing.skills` — this file is for the orchestrating agent.
   |---|---|
   | Implement / refactor / debug client code | `www-dnsmadeeasy-worker` (default) |
   | Write/extend fixture-backed tests | `www-dnsmadeeasy-test-writer` |
-  | Pre-release CPAN audit | `www-dnsmadeeasy-release-checker` |
+  | Pre-release CPAN audit | `www-dnsmadeeasy-release-manager` |
 
 - **You cannot spawn subagents** (you ARE a `www-dnsmadeeasy-*` agent): The lock does not
   apply — implement, refactor, debug and test per these rules.
@@ -44,10 +44,13 @@ Behaviour-relevant = runtime behaviour, the public API of the client and resourc
 classes, the request/HMAC layer, error handling, tests, and the MockUA fixtures. Pure
 prose docs and `Changes` notes are not.
 
+**Only `www-dnsmadeeasy-release-manager` commits.** A worker leaves a commit-ready tree and hands its card
+to `review`; you then dispatch `www-dnsmadeeasy-release-manager` to cut the commit and close the card.
+
 ## Coordination — karr board (always in scope)
 
 Ticket coordination is the orchestrating agent's job, so `karr` is always in scope — just
-use it (skill `kanban-issues-karr-cli` for the command surface). Git-native kanban; state
+use it (skill `kanban-issues-karr-coordination` for the command surface). Git-native kanban; state
 lives in `refs/karr/*`; this repo has its own board.
 
 - `karr list --compact` / `karr board` — open work · `karr show ID` — detail
