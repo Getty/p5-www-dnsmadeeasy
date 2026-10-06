@@ -1,0 +1,22 @@
+---
+class: standard
+created: 2026-10-06T19:48:50Z
+id: 8
+priority: medium
+status: backlog
+tags:
+- errors
+- review-2026-10-06
+title: request() throws away the API's error messages; wait_for_delete/wait_for_pending_action
+  can loop forever
+updated: 2026-10-06T19:48:50Z
+---
+
+`lib/WWW/DNSMadeEasy.pm:81`: `die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;` (note the leading space). DNSMadeEasy answers a 400 with `{"error": ["Record with this type, name, and value already exists."]}`; the caller only sees ` HTTP request failed: 400 Bad Request` and has to dig the reason out of `$dme->last_response` by hand.
+
+`lib/WWW/DNSMadeEasy/ManagedDomain.pm:47-56` (`wait_for_delete`) polls every 10 s until the error text matches `/(404|400)/`. Any other persistent failure -- 401 after a key rotation, 429 rate limit, a network error (LWP's internal 500) -- keeps it looping with no upper bound. `wait_for_pending_action` (lines 58-66) has no bound either and compares `pending_action_id == 0`, which warns on `undef`.
+
+Done when: the die message carries the joined `error` array of the body when there is one (keeping the status line), and both wait methods take a `timeout` (with a sane default) and stop on errors that are not 'still there'.
+
+---
+Fleet review 2026-10-06 · kind: improvement · confidence: verified
