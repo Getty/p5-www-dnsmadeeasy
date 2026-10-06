@@ -1,0 +1,22 @@
+---
+class: standard
+created: 2026-10-06T19:48:45Z
+id: 7
+priority: medium
+status: backlog
+tags:
+- deps
+- review-2026-10-06
+title: 'cpanfile: LWP::Protocol::https missing for an HTTPS-only API; Data::Printer
+  is a hard runtime dep for one debug line'
+updated: 2026-10-06T19:48:45Z
+---
+
+`api_endpoint` (`lib/WWW/DNSMadeEasy.pm:44-51`) is `https://` only since 0.100, but `cpanfile` requires just `LWP`. `LWP::Protocol::https` is a separate distribution; on a clean install the first request fails with `501 Protocol scheme 'https' is not supported (LWP::Protocol::https not installed)`, which `request` reports as ` HTTP request failed: 501 ...`. p5-www-metaforge fixed the same thing in its k5.
+
+Second, `lib/WWW/DNSMadeEasy.pm:75` has `use DDP; p $data if $ENV{WWW_DME_DEBUG};` inside `request`. `use` runs at compile time regardless of the `if`, so Data::Printer (and its dependency chain) is loaded on every use of the module and has to stay in `cpanfile` for the sake of a debug print; the neighbouring debug lines use plain `say`.
+
+Done when: `cpanfile` requires `LWP::Protocol::https` (and `LWP::UserAgent`/`HTTP::Request` by name rather than `LWP`), the DDP line is replaced by a `require`-on-demand or a `say` of the encoded JSON, and `Data::Printer` leaves the runtime prereqs.
+
+---
+Fleet review 2026-10-06 · kind: hygiene · confidence: verified
