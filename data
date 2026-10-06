@@ -1,0 +1,31 @@
+---
+class: standard
+created: 2026-10-06T19:48:34Z
+id: 5
+priority: high
+status: backlog
+tags:
+- bug
+- git
+- pagination
+- review-2026-10-06
+title: 'Branch phase2-dnsmadeeasy was never merged: records() pagination (k2) and
+  query_form (k3) are done on the board but missing on main'
+updated: 2026-10-06T19:48:34Z
+---
+
+`git log --oneline main..phase2-dnsmadeeasy`:
+
+- `f5ebaed` Follow v2 pagination in ManagedDomain records() (k2)
+- `97b72b6` Build ManagedDomain records() query with URI->query_form (k3)
+
+Both cards are `done`. On `main`, `lib/WWW/DNSMadeEasy/ManagedDomain.pm:92-110` is still the old code: one GET, the `# TODO do multiple gets when max number of records is reached` comment above it, and the query string glued together unescaped (`'?recordName=' . $args{name}`), so a zone with more records than one page silently returns a truncated list -- dangerous for anything that syncs or diffs records.
+
+`git diff --stat main...phase2-dnsmadeeasy`: 9 files, +151/-11 (ManagedDomain.pm, cpanfile +1, Changes, `t/13-records-pagination.t`, `t/14-records-query-form.t`, three fixtures, `t/lib/MockUA.pm`).
+
+Open card k4 (skill note about query_form) describes the merged state and only makes sense after this.
+
+Done when: both commits are on `main`, `prove -l t` is green including t/13 and t/14, the branch is deleted, then k4.
+
+---
+Fleet review 2026-10-06 · kind: bug · confidence: verified
