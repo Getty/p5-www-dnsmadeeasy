@@ -1,0 +1,27 @@
+---
+class: standard
+created: 2026-10-06T19:48:40Z
+id: 6
+priority: low
+status: backlog
+tags:
+- bug
+- review-2026-10-06
+title: 'api_version isa check is a no-op: any value is accepted and ends up in the
+  URL'
+updated: 2026-10-06T19:48:40Z
+---
+
+`lib/WWW/DNSMadeEasy.pm:25-30`: `isa => sub { $_ && ( $_ eq '1.2' or $_ eq '2.0' ) }`. A Moo `isa` gets the value in `$_[0]` (not `$_`) and has to `die` to reject; its return value is ignored. So the check never fires:
+
+```
+perl -Ilib -e 'use WWW::DNSMadeEasy; print WWW::DNSMadeEasy->new( api_key => "a", secret => "b", api_version => "9.9" )->api_endpoint'
+# https://api.dnsmadeeasy.com/V9.9/
+```
+
+A typo such as `api_version => 2` or `'2'` therefore produces 404s from `/V2/` instead of a constructor error.
+
+Done when: the check dies with a message naming the two valid values (and `2`/`2.0` numeric input is either coerced or rejected explicitly); `t/00-load.t` or a new test covers a bad value.
+
+---
+Fleet review 2026-10-06 · kind: bug · confidence: verified
