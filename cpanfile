@@ -10,7 +10,7 @@ requires 'String::CamelSnakeKebab';
 requires 'URI';
 
 on test => sub {
+  requires 'Path::Tiny';
   requires 'Test::More', '0.96';
   requires 'Test::Most';
-  requires 'Path::Tiny';
 };

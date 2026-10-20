@@ -20,6 +20,8 @@ Revision history for WWW-DNSMadeEasy
   - wait_for_delete and wait_for_pending_action take a timeout (default 300
     seconds), abort on errors other than 404 and 400 and return true when the
     wait ended as expected
+  - Check the cpanfile in the test suite: every library the code loads is a
+    declared prerequisite
 
 0.100     2026-01-05 19:23:57Z
   - Switch default branch from master to main
