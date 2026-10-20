@@ -1,0 +1,79 @@
+---
+claimed_at: 2026-10-20T16:37:53Z
+claimed_by: k11-dnsmadeeasy
+class: standard
+completed: 2026-10-20T16:37:53Z
+created: 2026-10-20T16:26:21Z
+id: 11
+priority: medium
+started: 2026-10-20T16:37:53Z
+status: done
+tags:
+- release
+- prereq
+title: Ein Test, der die Voraussetzungen haelt, fehlt
+updated: 2026-10-20T16:45:07Z
+---
+
+Ein Test, der die Voraussetzungen haelt, fehlt.
+
+Andere Distributionen der WWW-Flotte pruefen mit t/cpanfile.t, dass jede
+Bibliothek, die der Code laedt, im cpanfile genannt ist. In diesem Repo gibt
+es keinen solchen Test: eine verlorene Voraussetzung faellt dann erst beim
+Laden der Bibliothek auf einer Maschine auf, auf der das Modul fehlt - nicht
+beim Bauen.
+
+Der Test entsteht neu nach dem Hausmuster (siehe p5-www-hetzner,
+p5-www-idrac, p5-www-keycloak): er liest das cpanfile, trennt die
+Laufzeit-Phase von der Test-Phase und haelt eine hart kodierte Liste fest -
+je Voraussetzung ein ok(). Wo Modul und Distribution auseinanderlaufen, zaehlt
+die Distribution: der Test akzeptiert deshalb beide Formen (in Klammern die
+zulaessigen Namen im cpanfile).
+
+Laufzeit:
+  DateTime
+  DateTime::Format::HTTP
+  Digest::HMAC_SHA1 (Digest::HMAC, Digest::HMAC_SHA1)
+  HTTP::Request (HTTP::Request, HTTP::Message)
+  JSON
+  LWP::Protocol::https
+  LWP::UserAgent
+  Moo (Moo, Moo::Role)
+  String::CamelSnakeKebab
+  URI
+
+Test:
+  HTTP::Response (HTTP::Response, HTTP::Message, HTTP::Request)
+  Path::Tiny
+  Test::Most
+  Test::More
+
+Regeln fuer den Test:
+- Eine Laufzeit-Voraussetzung muss in der Laufzeit-Phase stehen; ein Eintrag
+  nur in der Test-Phase installiert sie beim Anwenden nicht.
+- Eine Test-Voraussetzung wird akzeptiert, wenn sie in der Test-Phase oder in
+  der Laufzeit-Phase steht - die Laufzeit-Phase wird immer installiert.
+- Kernmodule gehoeren nicht in die Liste. Die Testhelfer im Repo (MockUA,
+  MockForgejo, Test::WWW::MikroTik::MockUA) sind keine Voraussetzungen.
+
+Am cpanfile:
+Alle genannten Voraussetzungen sind heute schon genannt, es fehlt nur
+der Test. Der Test-Block steht nicht in der alphabetischen Reihenfolge
+(Path::Tiny, Test::More, Test::Most) - bring ihn in die Hausform.
+
+Der rote Beweis: der Test muss gegen das alte cpanfile rot sein. Belege ihn so
+und nenne das Ergebnis in der Abschlussmeldung:
+
+    cd <worktree>
+    cp cpanfile cpanfile.bak
+    git show main:cpanfile > cpanfile
+    prove -lr t/cpanfile.t     # muss rot sein
+    mv cpanfile.bak cpanfile
+    prove -lr t/cpanfile.t     # muss gruen sein
+
+cpanfile.bak ist nur eine Sicherung: sie wird nicht committet und am Ende
+geloescht.
+
+Aenderungen ausserhalb von cpanfile, t/cpanfile.t und Changes: nicht.
+Ein Changes-Eintrag unter {$NEXT} (ohne Kartennummern, bei 78 Spalten
+umbrochen). Commit-Betreff nennt die Karte als (k11), kein #11.
