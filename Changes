@@ -8,8 +8,8 @@ Revision history for WWW-DNSMadeEasy
   - Fixed POD typos
   - Added api_version attribute documentation
   - Added Monitor and Response to load tests
-  - Build the ManagedDomain records() list query with URI->query_form
-    instead of hand-concatenating type/recordName/page (no wire change)
+  - Build the ManagedDomain records() list query with URI->query_form, so
+    the record name and the type travel percent-encoded in the query
   - Validate the api_version attribute in the constructor: only 1.2 and 2.0
     are accepted, numbers are normalized so 2 becomes '2.0'
   - Declare the HTTP prereqs by name (LWP::Protocol::https, LWP::UserAgent,
