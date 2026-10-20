@@ -90,7 +90,9 @@ hashref of raw camelCase keys like `gtdLocation`.)
 ## Documented server quirks encoded in the code — preserve them
 
 - **`ManagedDomain::records(%args)`** builds its query string with `URI->query_form` on
-  a relative URI (`recordName` / `type`, plus `page`); it needed no `request()`
+  a relative URI (`recordName` / `type`, plus `page`); the record name and the type
+  therefore travel percent-encoded in the query (a space becomes `+`, a literal `+`
+  becomes `%2B`) — pinned by `t/18-records-query-escaping.t`. It needed no `request()`
   change — the URI stringifies into `api_endpoint . $path`. The v2 record list is
   paginated, so `records()` follows `page`/`totalPages` and merges all pages; a
   single GET silently truncates the list.
