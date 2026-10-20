@@ -1,0 +1,48 @@
+---
+claimed_at: 2026-10-20T03:59:52Z
+claimed_by: k4-k8
+class: standard
+completed: 2026-10-20T03:59:52Z
+created: 2026-10-06T19:48:50Z
+id: 8
+priority: medium
+started: 2026-10-20T03:20:11Z
+status: done
+tags:
+- errors
+- review-2026-10-06
+title: request() throws away the API's error messages; wait_for_delete/wait_for_pending_action
+  can loop forever
+updated: 2026-10-20T03:59:52Z
+---
+
+`lib/WWW/DNSMadeEasy.pm:81`: `die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;` (note the leading space). DNSMadeEasy answers a 400 with `{"error": ["Record with this type, name, and value already exists."]}`; the caller only sees ` HTTP request failed: 400 Bad Request` and has to dig the reason out of `$dme->last_response` by hand.
+
+`lib/WWW/DNSMadeEasy/ManagedDomain.pm:47-56` (`wait_for_delete`) polls every 10 s until the error text matches `/(404|400)/`. Any other persistent failure -- 401 after a key rotation, 429 rate limit, a network error (LWP's internal 500) -- keeps it looping with no upper bound. `wait_for_pending_action` (lines 58-66) has no bound either and compares `pending_action_id == 0`, which warns on `undef`.
+
+Done when: the die message carries the joined `error` array of the body when there is one (keeping the status line), and both wait methods take a `timeout` (with a sane default) and stop on errors that are not 'still there'.
+
+---
+Fleet review 2026-10-06 · kind: improvement · confidence: verified
+
+2026-10-20 03:50 Implemented on branch k4-k8, commit 3ccb1a4.
+
+- request() croaks with "HTTP request failed: <status line>: <error texts>" - the texts are the "error" array of the body joined with "; ", the status line is kept.
+- Response::error returns an empty list for a body without an "error" key (it warned before) and does not die on an empty body.
+- wait_for_delete and wait_for_pending_action take timeout (default 300 s) and interval (default 10 s) and croak when the timeout is reached.
+- Only 404 and the expected 400 end the wait normally; 401, 429, a network error and every other status is rethrown - the old code polled on forever.
+- The status is read from last_response->code, not from the die message: the enriched message can contain "404"/"400" inside an API error text, the old regex would have matched that.
+- An undefined pendingActionId counts as "no pending action" (the old comparison warned about it).
+
+Decisions I took:
+- The wording of the card is ambiguous ("stop on errors that are not still there" vs "only 404 resp. the expected 400 may keep polling"). I kept the semantics of the old code: 404/400 end the wait, everything else aborts with the original error.
+- Added the optional interval argument next to timeout - without it the polling loop cannot be tested without a 10 second sleep.
+- Both wait methods return true when the wait ended as expected.
+
+Red before the fix: t/17-error-handling.t against the lib of d00f62c fails 10 of 16 tests, all behavioural (no "Can't locate"); against the new lib all 16 pass. Full suite green: 14 files, 98 tests.
+
+2026-10-20 03:51 Rebased onto the current main (main moved on with ab5edc1, the .worktreeinclude chore commit), so the commit hash changed: k8 is now 748c1ee (was 3ccb1a4). The suite was run again after the rebase: 14 files, 98 tests, green.
+
+2026-10-20 03:52 Done: the failure message of request() carries the status line and the error texts of the body (croak instead of die), Response::error is safe for a body without an error, wait_for_delete and wait_for_pending_action take a timeout (default 300 s) and abort on every error other than 404/400, an undefined pendingActionId counts as no pending action. t/17-error-handling.t proven red against the old lib (10 of 16 failed), green now. Commit 748c1ee, suite 14 files / 98 tests green.
+
+2026-10-20 03:59 2026-10-20 Koordination: geprueft und nach main gezogen (Merge 748c1ee, ff-only). t/17 ist gegen das alte lib/ rot (10 von 16 Tests). Suite nach dem Merge: 14 Dateien, 98 Tests, gruen.
