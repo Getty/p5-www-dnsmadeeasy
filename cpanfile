@@ -1,10 +1,11 @@
-requires 'Moo';
-requires 'LWP';
-requires 'JSON';
-requires 'Digest::HMAC';
 requires 'DateTime';
 requires 'DateTime::Format::HTTP';
-requires 'Data::Printer';
+requires 'Digest::HMAC';
+requires 'HTTP::Request';
+requires 'JSON';
+requires 'LWP::Protocol::https';
+requires 'LWP::UserAgent';
+requires 'Moo';
 requires 'String::CamelSnakeKebab';
 requires 'URI';
 

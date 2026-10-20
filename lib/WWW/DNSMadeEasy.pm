@@ -82,8 +82,9 @@ sub request {
     $request->header('Accept' => 'application/json');
     if (defined $data) {
         $request->header('Content-Type' => 'application/json');
-        $request->content(encode_json($data));
-        use DDP; p $data if $ENV{WWW_DME_DEBUG};
+        my $encoded = encode_json($data);
+        $request->content($encoded);
+        say $encoded if $ENV{WWW_DME_DEBUG};
     }
     my $res = $self->_http_agent->request($request);
     $res = WWW::DNSMadeEasy::Response->new( http_response => $res );

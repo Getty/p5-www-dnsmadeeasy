@@ -12,6 +12,9 @@ Revision history for WWW-DNSMadeEasy
     instead of hand-concatenating type/recordName/page (no wire change)
   - Validate the api_version attribute in the constructor: only 1.2 and 2.0
     are accepted, numbers are normalized so 2 becomes '2.0'
+  - Declare the HTTP prereqs by name (LWP::Protocol::https, LWP::UserAgent,
+    HTTP::Request) so a clean install can reach the HTTPS API, and drop
+    Data::Printer from the runtime prereqs
 
 0.100     2026-01-05 19:23:57Z
   - Switch default branch from master to main

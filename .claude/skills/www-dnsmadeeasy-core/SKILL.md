@@ -120,6 +120,5 @@ without it.)
 **non-recursive** and silently skips them — use `prove -lr t/`. `dzil test` runs the full
 tree.
 
-`WWW_DME_DEBUG=1` makes `request()` print each `METHOD URL`, the outgoing data (via
-`Data::Printer`), and the response body — the fastest way to see what actually went to
-the wire.
+`WWW_DME_DEBUG=1` makes `request()` print each `METHOD URL`, the outgoing data (as
+JSON), and the response body — the fastest way to see what actually went to the wire.
