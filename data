@@ -1,0 +1,39 @@
+---
+claimed_at: 2026-10-20T03:59:43Z
+claimed_by: k4-k8
+class: standard
+completed: 2026-10-20T03:59:43Z
+created: 2026-10-06T19:48:40Z
+id: 6
+priority: low
+started: 2026-10-20T03:20:00Z
+status: done
+tags:
+- bug
+- review-2026-10-06
+title: 'api_version isa check is a no-op: any value is accepted and ends up in the
+  URL'
+updated: 2026-10-20T03:59:43Z
+---
+
+`lib/WWW/DNSMadeEasy.pm:25-30`: `isa => sub { $_ && ( $_ eq '1.2' or $_ eq '2.0' ) }`. A Moo `isa` gets the value in `$_[0]` (not `$_`) and has to `die` to reject; its return value is ignored. So the check never fires:
+
+```
+perl -Ilib -e 'use WWW::DNSMadeEasy; print WWW::DNSMadeEasy->new( api_key => "a", secret => "b", api_version => "9.9" )->api_endpoint'
+# https://api.dnsmadeeasy.com/V9.9/
+```
+
+A typo such as `api_version => 2` or `'2'` therefore produces 404s from `/V2/` instead of a constructor error.
+
+Done when: the check dies with a message naming the two valid values (and `2`/`2.0` numeric input is either coerced or rejected explicitly); `t/00-load.t` or a new test covers a bad value.
+
+---
+Fleet review 2026-10-06 · kind: bug · confidence: verified
+
+2026-10-20 03:31 Done: isa was a no-op (Moo passes the value as $_[0] and only a die rejects) — replaced with a coerce that normalizes numbers (2 -> '2.0', 1.2 -> '1.2', '2' -> '2.0') and an isa that croaks "api_version must be '1.2' or '2.0', not 'X'". Default stays '2.0'. t/15-api-version.t (19 tests) proven red against the old lib (15 of 19 failed), green now. Commit 4d697c5. Note: the string '2' is normalized to '2.0' as well, otherwise it would still hit /V2/ and 404 — the exact failure the card reports.
+
+2026-10-20 03:31 Done: api_version is validated in the constructor, numbers are normalized, t/15-api-version.t proves it (red against the old lib), prove -lr t/ green (12 files, 76 tests). Commit 4d697c5.
+
+2026-10-20 03:51 Rebased onto the current main (main moved on with ab5edc1), so the commit hash changed: k6 is now 02db469 (was 4d697c5). Suite after the rebase: 14 files, 98 tests, green.
+
+2026-10-20 03:59 2026-10-20 Koordination: geprueft und nach main gezogen (Merge 748c1ee, ff-only). t/15 ist gegen das alte lib/ rot (15 von 19 Tests). Suite nach dem Merge: 14 Dateien, 98 Tests, gruen.
