@@ -15,6 +15,11 @@ Revision history for WWW-DNSMadeEasy
   - Declare the HTTP prereqs by name (LWP::Protocol::https, LWP::UserAgent,
     HTTP::Request) so a clean install can reach the HTTPS API, and drop
     Data::Printer from the runtime prereqs
+  - The message of a failed request now names the HTTP status and the error
+    texts the API returned
+  - wait_for_delete and wait_for_pending_action take a timeout (default 300
+    seconds), abort on errors other than 404 and 400 and return true when the
+    wait ended as expected
 
 0.100     2026-01-05 19:23:57Z
   - Switch default branch from master to main

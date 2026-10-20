@@ -9,6 +9,13 @@ sub new {
   return bless {
     fixtures_dir => $args{fixtures_dir} // 't/fixtures',
     requests     => [],
+    # Canned answer for "METHOD /path": [ code, content ] - a fixed status and
+    # body instead of a fixture.
+    responses    => $args{responses} || {},
+    # Canned answers for "METHOD /path" used one after another:
+    # [ [ code, content ], [ code, content ], ... ] - the last one repeats.
+    sequence     => $args{sequence} || {},
+    counters     => {},
   }, $class;
 }
 
@@ -26,6 +33,22 @@ sub request {
   my $path = $uri->path;
 
   push @{$self->{requests}}, $uri;
+
+  my $key = "$method $path";
+
+  if (exists $self->{responses}{$key}) {
+    my ($code, $content) = @{$self->{responses}{$key}};
+    return $self->_response($code, $content);
+  }
+
+  if (exists $self->{sequence}{$key}) {
+    my $list = $self->{sequence}{$key};
+    my $index = $self->{counters}{$key} // 0;
+    $self->{counters}{$key} = $index + 1;
+    $index = $#$list if $index > $#$list;
+    my ($code, $content) = @{$list->[$index]};
+    return $self->_response($code, $content);
+  }
 
   my $fixture_file;
 
@@ -109,25 +132,24 @@ sub request {
   unless ($file->is_file) {
     # Für DELETE-Operationen ist eine leere Response OK
     if ($method eq 'DELETE') {
-      my $response = HTTP::Response->new(200, 'OK');
-      $response->content('');
-      $response->header('Content-Type' => 'application/json');
-      $response->header('x-dnsme-requestId' => '12345');
-      $response->header('x-dnsme-requestLimit' => '150');
-      $response->header('x-dnsme-requestsRemaining' => '149');
-      return $response;
+      return $self->_response(200, '');
     }
     return HTTP::Response->new(404, "Fixture not found: $fixture_file");
   }
 
   my $content = $file->slurp_utf8;
-  my $response = HTTP::Response->new(200, 'OK');
-  $response->content($content);
+
+  return $self->_response(200, $content);
+}
+
+sub _response {
+  my ($self, $code, $content) = @_;
+  my $response = HTTP::Response->new($code);
+  $response->content(defined $content ? $content : '');
   $response->header('Content-Type' => 'application/json');
   $response->header('x-dnsme-requestId' => '12345');
   $response->header('x-dnsme-requestLimit' => '150');
   $response->header('x-dnsme-requestsRemaining' => '149');
-
   return $response;
 }
 

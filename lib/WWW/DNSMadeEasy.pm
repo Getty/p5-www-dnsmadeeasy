@@ -90,7 +90,15 @@ sub request {
     $res = WWW::DNSMadeEasy::Response->new( http_response => $res );
     say $res->content if $ENV{WWW_DME_DEBUG};
     $self->last_response($res);
-    die ' HTTP request failed: ' . $res->status_line . "\n" unless $res->is_success;
+    unless ($res->is_success) {
+        # The API puts the reason for a failure into the "error" array of the
+        # body - without it the caller only sees the status code and has to
+        # dig through last_response to find out what went wrong.
+        my @errors = $res->error;
+        my $message = 'HTTP request failed: '.$res->status_line;
+        $message .= ': '.join('; ', @errors) if @errors;
+        croak $message;
+    }
     return $res;
 }
 

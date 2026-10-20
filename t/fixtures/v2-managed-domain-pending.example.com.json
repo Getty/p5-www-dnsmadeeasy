@@ -1,0 +1,13 @@
+{
+  "id": 200003,
+  "name": "pending.example.com",
+  "activeThirdParties": [],
+  "created": 1609459200000,
+  "delegateNameServers": [],
+  "folderId": 0,
+  "gtdEnabled": false,
+  "nameServers": ["ns1.dnsmadeeasy.com", "ns2.dnsmadeeasy.com"],
+  "pendingActionId": 12345,
+  "processMulti": false,
+  "updated": 1609545600000
+}

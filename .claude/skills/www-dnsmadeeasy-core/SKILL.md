@@ -41,7 +41,9 @@ delegation from the resource's `dme`). It:
   the host;
 - JSON-encodes `$data` when present, sets Accept/Content-Type;
 - wraps the reply in `WWW::DNSMadeEasy::Response`, stores it in `last_response`;
-- **`die`s on any non-success status** — callers assume success past the call.
+- **`die`s on any non-success status** — the message carries the status line and
+  the `error` texts of the response body, so the reason is visible without
+  digging through `last_response`.
 
 Add cross-cutting HTTP behaviour here, not in resource classes.
 
@@ -96,8 +98,10 @@ hashref of raw camelCase keys like `gtdLocation`.)
   and offers no get-single-record-by-id, so `update` re-fetches via
   `records(type => …, name => …)` and matches by `id` to refresh `as_hashref`. This
   re-fetch is load-bearing, not redundant.
-- **`ManagedDomain::wait_for_delete` / `wait_for_pending_action`** poll with `sleep 10`;
-  they are only meaningful against the live API.
+- **`ManagedDomain::wait_for_delete` / `wait_for_pending_action`** poll with `sleep 10`
+  until the domain is gone (404) or has no pending action left; both take a
+  `timeout` (default 300 s) and abort on any error other than 404/400. They are
+  only meaningful against the live API.
 - **`Monitor`**: `protocol_id` → name via an in-module `%PROTOCOL` table; `create` is an
   alias for `update`; `disable` PUTs `failover/monitor => 'false'` then re-GETs.
 
@@ -108,7 +112,9 @@ Default `prove` runs **offline**. `t/lib/MockUA.pm` maps `method + URI path` to 
 tests inject it with `$dme->{_http_agent} = MockUA->new(fixtures_dir => …)`, bypassing the
 lazy real UA. **Adding an endpoint means adding both** a `MockUA` path-regex branch and a
 fixture JSON file — a missing fixture returns `404` (except DELETE, which MockUA fakes as
-empty-200).
+empty-200). Answers a fixture cannot express (a 400 with an error body, a sequence of
+answers for one path) come from `responses => { 'GET /path' => [ $code, $content ] }` and
+`sequence => { 'GET /path' => [ [ $code, $content ], … ] }`.
 
 Live tests activate only when `TEST_WWW_DNSMADEEASY_API_KEY` + `TEST_WWW_DNSMADEEASY_API_SECRET`
 are set; `TEST_WWW_DNSMADEEASY_WRITE=1` enables create/delete; `TEST_WWW_DNSMADEEASY_SANDBOX=1`

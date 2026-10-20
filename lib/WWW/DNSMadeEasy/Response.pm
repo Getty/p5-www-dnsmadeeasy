@@ -20,7 +20,10 @@ sub as_hashref {
 
 sub error {
     my ($self) = @_;
-    my $err = $self->data->{error};
+    my $data = $self->data;
+    return wantarray ? () : '' unless ref($data) eq 'HASH';
+    my $err = $data->{error};
+    return wantarray ? () : '' unless defined $err;
     $err = [$err] unless ref($err) eq 'ARRAY';
     return wantarray ? @$err : join("\n", @$err);
 }
@@ -91,4 +94,7 @@ convert response JSON to HashRef
     my @errors = $response->error;
 
 get the detailed request errors
+
+The error texts of the body, as a list. The list is empty when the body
+carries no error.
 

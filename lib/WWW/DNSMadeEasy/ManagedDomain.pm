@@ -2,9 +2,13 @@ package WWW::DNSMadeEasy::ManagedDomain;
 # ABSTRACT: A managed domain in the DNSMadeEasy API
 our $VERSION = '0.101';
 use Moo;
+use Carp qw( croak );
 use URI;
 use String::CamelSnakeKebab qw/lower_camel_case/;
 use WWW::DNSMadeEasy::ManagedDomain::Record;
+
+use constant WAIT_TIMEOUT  => 300;
+use constant WAIT_INTERVAL => 10;
 
 has dme => (
     is       => 'ro',
@@ -46,24 +50,69 @@ sub update {
 }
 
 sub wait_for_delete {
-    my ($self) = @_;
+    my ( $self, %args ) = @_;
+    my $timeout  = $args{timeout}  // WAIT_TIMEOUT;
+    my $interval = $args{interval} // WAIT_INTERVAL;
+    my $deadline = time + $timeout;
+
     while (1) {
         $self->clear_response;
         $self->clear_as_hashref;
         eval { $self->response() };
-        last if $@ && $@ =~ /(404|400)/;
-        sleep 10;
+        if ( my $error = $@ ) {
+            # A deleted domain answers with 404, a delete that is still
+            # running with the expected 400 - both end the wait. Every other
+            # error (401 after a key rotation, 429 rate limit, a network
+            # error) says nothing about the delete and is rethrown instead of
+            # being polled on forever.
+            my $code = $self->_last_status_code;
+            return 1 if defined $code && ( $code == 404 || $code == 400 );
+            die $error;
+        }
+
+        # The domain is still there.
+        if ( time >= $deadline ) {
+            croak 'wait_for_delete: timeout of '.$timeout.' seconds reached, '.$self->name.' is still there';
+        }
+        sleep $interval;
     }
 }
 
 sub wait_for_pending_action {
-    my ($self) = @_;
+    my ( $self, %args ) = @_;
+    my $timeout  = $args{timeout}  // WAIT_TIMEOUT;
+    my $interval = $args{interval} // WAIT_INTERVAL;
+    my $deadline = time + $timeout;
+
     while (1) {
         $self->clear_response;
         $self->clear_as_hashref;
-        last if $self->pending_action_id == 0;
-        sleep 10;
+        my $pending;
+        eval { $pending = $self->pending_action_id };
+        if ( my $error = $@ ) {
+            my $code = $self->_last_status_code;
+            return 1 if defined $code && ( $code == 404 || $code == 400 );
+            die $error;
+        }
+
+        # An undefined pendingActionId means the API reports no pending
+        # action - that is nothing pending, not an error.
+        return 1 if !$pending;
+
+        if ( time >= $deadline ) {
+            croak 'wait_for_pending_action: timeout of '.$timeout.' seconds reached, '.$self->name.' still has a pending action';
+        }
+        sleep $interval;
     }
+}
+
+# The status of the last response, or undef if there was none - a network
+# error never produces a response.
+sub _last_status_code {
+    my ( $self ) = @_;
+    my $response = $self->dme->last_response;
+    return unless $response;
+    return $response->code;
 }
 
 #
@@ -134,6 +183,29 @@ sub records {
 =method delete()
 
 =method update(%data)
+
+=method wait_for_delete(%args)
+
+Waits until the domain is gone. The wait ends when the API answers with 404
+(the domain is gone) or with the expected 400 (the delete is still running).
+Every other error is rethrown.
+
+    $domain->wait_for_delete(timeout => 60);
+
+=method wait_for_pending_action(%args)
+
+Waits until the domain has no pending action left. A pendingActionId that the
+API does not report counts as no pending action.
+
+    $domain->wait_for_pending_action(timeout => 60);
+
+Both methods take these optional arguments:
+
+    timeout   - seconds to wait at most (default 300)
+    interval  - seconds between two polls (default 10)
+
+They croak when the timeout is reached and return true when the wait ended as
+expected.
 
 =method records(%data)
 
