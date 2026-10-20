@@ -10,6 +10,8 @@ Revision history for WWW-DNSMadeEasy
   - Added Monitor and Response to load tests
   - Build the ManagedDomain records() list query with URI->query_form
     instead of hand-concatenating type/recordName/page (no wire change)
+  - Validate the api_version attribute in the constructor: only 1.2 and 2.0
+    are accepted, numbers are normalized so 2 becomes '2.0'
 
 0.100     2026-01-05 19:23:57Z
   - Switch default branch from master to main

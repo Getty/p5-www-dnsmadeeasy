@@ -13,9 +13,9 @@ only what is specific to this distribution.
 ## The central fact: two API versions, two parallel object trees
 
 One client class serves **both** API versions, chosen by the `api_version` attribute
-(`isa` allows only `'1.2'` or `'2.0'`; default `'2.0'`). The two versions are *not*
-unified — each has its own resource classes and its own conventions. Know which tree you
-are in before touching anything:
+(`isa` allows only `'1.2'` or `'2.0'`, numbers are normalized; default `'2.0'`). The
+two versions are *not* unified — each has its own resource classes and its own
+conventions. Know which tree you are in before touching anything:
 
 | | v1.2 (`api_version => '1.2'`) | v2.0 (default) |
 |---|---|---|

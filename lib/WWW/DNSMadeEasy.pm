@@ -6,6 +6,7 @@ use feature qw/say/;
 use Moo;
 with 'WWW::DNSMadeEasy::Role::Domains',
      'WWW::DNSMadeEasy::Role::ManagedDomains';
+use Carp qw( croak );
 use DateTime;
 use DateTime::Format::HTTP;
 use Digest::HMAC_SHA1 qw(hmac_sha1 hmac_sha1_hex);
@@ -22,11 +23,21 @@ has last_response   => (is => 'rw');
 has _http_agent     => (is => 'lazy');
 has http_agent_name => (is => 'lazy');
 has api_version     => (
+    # The version ends up in the API URL (https://api.dnsmadeeasy.com/V<version>/),
+    # so a wrong value only shows up as 404s from the server. Reject it here.
+    coerce => sub {
+        my ( $value ) = @_;
+        return $value unless defined $value && $value =~ /^(\d+(?:\.\d+)?)$/;
+        my $number = $1 + 0;
+        return '2.0' if $number == 2;
+        return '1.2' if $number == 1.2;
+        return $value;
+    },
     isa => sub {
-        $_ && (
-            $_ eq '1.2' or
-            $_ eq '2.0'
-        )
+        my ( $value ) = @_;
+        return if defined $value && ( $value eq '1.2' or $value eq '2.0' );
+        my $given = defined $value ? $value : 'undef';
+        croak "api_version must be '1.2' or '2.0', not '".$given."'";
     },
     is => 'ro',
     default => sub { '2.0' },
@@ -165,7 +176,9 @@ If set to true, this will activate the usage of the sandbox, instead of the live
 
 =attr api_version
 
-The API version to use. Can be '1.2' or '2.0'. Defaults to '2.0'.
+The API version to use. Can be '1.2' or '2.0'. Numbers are normalized, so 2
+becomes '2.0'. Any other value is rejected in the constructor. Defaults to
+'2.0'.
 
 =attr http_agent_name
 
