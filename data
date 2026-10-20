@@ -1,0 +1,47 @@
+---
+claimed_at: 2026-10-20T05:06:49Z
+claimed_by: k9
+class: standard
+completed: 2026-10-20T05:06:49Z
+created: 2026-10-20T04:00:13Z
+id: 9
+priority: medium
+started: 2026-10-20T05:06:49Z
+status: done
+tags:
+- bug
+- review-2026-10-06
+title: 'records(): query parameters are not escaped - the encoding path is untested'
+updated: 2026-10-20T05:06:49Z
+---
+
+`lib/WWW/DNSMadeEasy/ManagedDomain.pm`: `records()` now builds the list query with `URI->query_form`, so `recordName` and `type` are percent-encoded. The old code glued them raw onto the path ("?recordName=" . $args{name}).
+
+`t/14-records-query-form.t` only uses "www" and "A". Without special characters the query is identical to the old build, so the test is green against the old lib/ and holds nothing of the escaping. The Changes entry says "no wire change" accordingly - true for the values in the test, but the encoding itself is recorded nowhere.
+
+Done when:
+
+- a case with a name that has to be escaped (a space, `+` or `&`) shows the built query and is red against the old lib/ (behavioural failure, not "cannot locate")
+- the Changes entry names the encoding instead of saying "no wire change" (destination, not journey: the name is encoded safely into the query)
+
+The test has to check the built query, not just that nothing happens.
+
+2026-10-20 05:01 Implemented as a test card plus one Changes entry; lib/WWW/DNSMadeEasy/ManagedDomain.pm stays untouched (the encoding is already correct there).
+
+2026-10-20 05:01 New test t/15-records-query-escaping.t: records(type => 'A', name => 'my domain + co') must build the query recordName=my+domain+%2B+co&type=A, must decode back to 'my domain + co', must hold no unencoded space and exactly one & separator.
+
+2026-10-20 05:01 Red proof against the old lib (f626d11^, hand-concatenated query): 'the record name travels percent-encoded in the query (space as +, + as %2B)' got 'recordName=my%20domain%20+%20co&type=A', expected 'recordName=my+domain+%2B+co&type=A'; 'the encoded name decodes back to the given value' got 'my domain   co', expected 'my domain + co'. Behavioural failure, not a load error.
+
+2026-10-20 05:01 Commit c4d5d60 on branch k9 (worktree .claude/worktrees/k9): 'Test the percent-encoding of the records() list query (k9)'. Changes entry replaced, it now names the percent-encoding instead of promising 'no wire change'. Full suite green offline: prove -lr t/ -> 15 files, 105 tests, PASS.
+
+2026-10-20 05:01 Also found: t/15-api-version.t already exists (from k6), so the 15- prefix is now used twice; the filename was kept as the coordinator specified it. Also found: .claude/skills/www-dnsmadeeasy-core/SKILL.md describes records() as building the query with URI->query_form but does not spell out that the name and type travel percent-encoded; left untouched to keep the card at test plus Changes entry.
+
+2026-10-20 05:01 Done: new test t/15-records-query-escaping.t pins the percent-encoded record name in the records() list query (red against f626d11^, behavioural failure); the Changes entry now names the encoding. Commit c4d5d60 on branch k9, full offline suite green (105 tests).
+
+2026-10-20 05:05 Coordinator follow-up: the test file was renamed so the numeric prefix is unique. Requested name was t/16-records-query-escaping.t, but t/16-prereqs.t (k7) already occupies 16 - so the next free number 18 was used: t/18-records-query-escaping.t. Same intent (no duplicated prefix), no new collision. Every numeric prefix in t/ is now unique except the pre-existing 13 (13-records-pagination.t, 13-roles.t).
+
+2026-10-20 05:05 Commit c4d5d60 replaced by 3d9c088 (same subject 'Test the percent-encoding of the records() list query (k9)'); the old commit is gone from the branch. Full offline suite green again: prove -lr t/ -> 15 files, 105 tests, PASS. Red proof re-run against f626d11^ with the new filename t/18-records-query-escaping.t: same behavioural failure (got 'recordName=my%20domain%20+%20co&type=A', expected 'recordName=my+domain+%2B+co&type=A'; decoded name got 'my domain   co', expected 'my domain + co').
+
+2026-10-20 05:05 Done: t/18-records-query-escaping.t pins the percent-encoded record name in the records() list query (red against f626d11^, behavioural failure); the Changes entry names the encoding. Commit 3d9c088 on branch k9 replaces c4d5d60, full offline suite green (105 tests).
+
+2026-10-20 Koordination: Der Branch ist auf main gezogen (fast-forward, keine Merge-Konflikte). Die Karte ist damit erledigt. Der neue Test `t/18-records-query-escaping.t` nagelt fest, dass der Name in der records()-Liste percent-kodiert auf die Wire geht: erwartet wird `recordName=my+domain+%2B+co&type=A`, und der Name muss wieder als `my domain + co` herauskommen. Der Changes-Eintrag nennt die Kodierung, statt "kein Wire-Wechsel" zu behaupten. Nachweis: `prove -lr t/` = 15 Dateien, 105 Tests, alles gruen. Der rote Beweis traegt: `t/18-records-query-escaping.t` scheitert gegen das alte `lib/` (`f626d11^`) mit einem Verhaltensfehler - das alte `lib/` liefert `recordName=my%20domain%20+%20co&type=A` und damit den kaputten Namen `my domain   co`. Kein Push, kein `dzil release`.
