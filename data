@@ -1,0 +1,32 @@
+---
+claimed_at: 2026-10-20T03:59:34Z
+claimed_by: k4-k8
+class: standard
+completed: 2026-10-20T03:59:34Z
+created: 2026-09-09T07:48:10Z
+id: 4
+priority: low
+started: 2026-10-20T03:19:48Z
+status: done
+tags:
+- docs
+- skill
+title: 'www-dnsmadeeasy-core skill: records() query_form note is stale'
+updated: 2026-10-20T03:59:34Z
+---
+
+The www-dnsmadeeasy-core skill still states the ManagedDomain records() query should move to URI query_form and that this needs a request() signature change. Ticket 3 implemented query_form records()-locally by passing a relative URI (which stringifies into request via overload) with NO request() change. Update the skill note: query_form is now done and needed no request() change. Documentation drift only. Found while completing ticket 3. The skill file may be hardlinked, so edit with manage-skills care.
+
+2026-10-20 03:27 Done: .claude/skills/www-dnsmadeeasy-core/SKILL.md now says records() builds its query with URI->query_form on a relative URI and needed no request() change; also mentions the pagination that landed with k5. Commit 3c1c036. File is a normal tracked file in this repo (link count 1, git-tracked), edited directly.
+
+2026-10-20 03:50 Also found (not fixed, outside the order):
+
+- .worktreeinclude (skilletor artifact, lists /.claude/skills/ and the .local.* files of the agents) is untracked in the main checkout and was not committed - the file does not exist in the worktree, so I left it alone. The coordinator or the release manager has to decide whether it goes into the repo.
+- Response::error warned when the body carried no "error" key and died on an empty body. Fixed in k8, because the new failure message of request() reads the error texts of the body.
+- ManagedDomain::pending_action_id still returns undef when the API omits pendingActionId. Only the wait methods treat that as "no pending action" - the accessor keeps mirroring the wire.
+
+2026-10-20 03:52 Rebased onto the current main (main moved on with ab5edc1), so the commit hash changed: k4 is now 3a19ea3 (was 3c1c036). Suite after the rebase: 14 files, 98 tests, green.
+
+Correction to the "Also found" note above: .worktreeinclude has meanwhile been committed to main (ab5edc1, "chore: add .worktreeinclude written by skilletor sync"), so nothing is left to do there.
+
+2026-10-20 03:59 2026-10-20 Koordination: geprueft und nach main gezogen (Merge 748c1ee, ff-only). Die Skill-Notiz stimmt jetzt mit dem Code ueberein; Suite nach dem Merge: 14 Dateien, 98 Tests, gruen. Reiner Dokumentationspunkt, deshalb kein roter Beweis noetig.
