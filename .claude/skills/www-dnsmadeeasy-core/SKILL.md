@@ -87,9 +87,11 @@ hashref of raw camelCase keys like `gtdLocation`.)
 
 ## Documented server quirks encoded in the code — preserve them
 
-- **`ManagedDomain::records(%args)`** builds its query string (`?type=` / `?recordName=`
-  / combined) by hand; a `TODO` notes moving to `URI->query_form` needs a `request()`
-  signature change.
+- **`ManagedDomain::records(%args)`** builds its query string with `URI->query_form` on
+  a relative URI (`recordName` / `type`, plus `page`); it needed no `request()`
+  change — the URI stringifies into `api_endpoint . $path`. The v2 record list is
+  paginated, so `records()` follows `page`/`totalPages` and merges all pages; a
+  single GET silently truncates the list.
 - **`ManagedDomain::Record::update`** (`# GRR ...`): DME returns nothing on a record PUT
   and offers no get-single-record-by-id, so `update` re-fetches via
   `records(type => …, name => …)` and matches by `id` to refresh `as_hashref`. This
