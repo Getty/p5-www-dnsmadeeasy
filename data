@@ -1,0 +1,22 @@
+---
+claimed_at: 2026-10-20T05:08:58Z
+claimed_by: k10
+class: standard
+completed: 2026-10-20T05:08:58Z
+created: 2026-10-20T05:04:07Z
+id: 10
+priority: low
+started: 2026-10-20T05:07:44Z
+status: done
+tags:
+- doc
+- skill
+title: Der Core-Skill beschreibt records() ohne die Percent-Kodierung zu nennen
+updated: 2026-10-20T05:08:58Z
+---
+
+In .claude/skills/www-dnsmadeeasy-core/SKILL.md steht im Abschnitt 'Documented server quirks encoded in the code': 'ManagedDomain::records(%args) builds its query string with URI->query_form on a relative URI (recordName / type, plus page)'. Der Abschnitt nennt damit den Aufbau, aber nicht die Wirkung: der Record-Name und der Typ gehen percent-kodiert auf die Wire (aus k9 jetzt durch t/16-records-query-escaping.t festgehalten).
+
+Erledigt, wenn der Skill an dieser Stelle ausdruecklich sagt, dass Name und Typ percent-kodiert in der Query landen, und wenn der Testsatz weiterhin gruen bleibt. Reine Dokumentation, kein Verhaltenswechsel.
+
+2026-10-20 Koordination: Der Branch ist auf main gezogen (fast-forward, keine Merge-Konflikte). Die Karte ist damit erledigt. Der Core-Skill sagt jetzt ausdruecklich, dass der Record-Name und der Typ in der records()-Query percent-kodiert landen (ein Leerzeichen wird `+`, ein literales `+` wird `%2B`), und verweist auf den Test, der das festhaelt. Reine Dokumentation, kein Verhaltenswechsel, kein Changes-Eintrag (die Skill-Datei geht nicht in die Distribution). Nachweis: `prove -lr t/` = 15 Dateien, 105 Tests, alles gruen. Kein Push, kein `dzil release`.
