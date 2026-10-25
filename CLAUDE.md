@@ -20,7 +20,8 @@ Live-API tests activate only with `TEST_WWW_DNSMADEEASY_API_KEY` +
 ## Delegation
 
 Delegate behaviour-relevant code to the right agent instead of touching it yourself — the
-principle and lanes are in `.claude/rules/www-dnsmadeeasy-rules.md`.
+principle is a shared house rule (skilletor bundle `getty-cpan-dist@getty`); lanes and
+hazards are in `.claude/rules/www-dnsmadeeasy-rules.md`.
 
 | Task | Agent |
 |---|---|
