@@ -15,7 +15,6 @@
       "getty-git-usage@getty",
       "getty-perl-core@getty",
       "getty-perl-moo@getty",
-      "getty-perl-release-author-getty@karr",
       "kanban-issues-karr-coordination@karr",
       "kanban-issues-karr-ticket@karr",
       "perl-release-dist-ini@getty"
